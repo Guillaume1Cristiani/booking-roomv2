@@ -20,18 +20,39 @@ export async function GET(request: NextRequest) {
       console.error("MICROSOFT_TENANT_ID is not set");
       return NextResponse.json({ error: "Server misconfiguration" }, { status: 500 });
     }
+
+    // Generate a unique, unpredictable CSRF state token for this login attempt.
+    const csrfState = crypto.randomUUID();
     const authUrl = `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/authorize?client_id=${
       process.env.MICROSOFT_CLIENT_ID
     }&response_type=code&redirect_uri=${encodeURIComponent(
       process.env.MICROSOFT_REDIRECT_URI!
     )}&scope=${encodeURIComponent(
       process.env.MICROSOFT_SCOPES!
-    )}&response_mode=query&state=12345`;
-    return NextResponse.redirect(authUrl);
+    )}&response_mode=query&state=${csrfState}`;
+
+    const loginRedirect = NextResponse.redirect(authUrl);
+    loginRedirect.cookies.set({
+      name: "oauth_state",
+      value: csrfState,
+      httpOnly: true,
+      secure: process.env.NODE_ENV !== "development",
+      sameSite: "lax",
+      maxAge: 60 * 10, // 10 minutes — just enough to complete the OAuth flow
+      path: "/",
+    });
+    return loginRedirect;
   } else if (action === "callback") {
     const code = searchParams.get("code");
     if (!code) {
       return NextResponse.json({ error: "No code provided" }, { status: 400 });
+    }
+
+    // Validate CSRF state: compare the state param with the stored cookie.
+    const receivedState = searchParams.get("state");
+    const storedState = request.cookies.get("oauth_state")?.value;
+    if (!receivedState || !storedState || receivedState !== storedState) {
+      return NextResponse.json({ error: "Invalid OAuth state" }, { status: 400 });
     }
 
     try {
@@ -95,7 +116,7 @@ export async function GET(request: NextRequest) {
           .returning();
       }
 
-      // Set cookie to store the token
+      // Set cookie to store the token; clear the one-time CSRF state cookie.
       const response = NextResponse.redirect(`${baseUrl}/calendar`);
       response.cookies.set({
         name: "token",
@@ -106,6 +127,7 @@ export async function GET(request: NextRequest) {
         maxAge: tokenResponse.data.expires_in,
         path: "/",
       });
+      response.cookies.delete("oauth_state");
 
       return response;
     } catch (error) {

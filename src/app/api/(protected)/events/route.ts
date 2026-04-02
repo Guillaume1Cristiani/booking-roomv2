@@ -1,6 +1,7 @@
 import { Event, Events, NewEvent, User } from "@/db/schema";
 import { db } from "@/lib/db";
 import { createEvent, deleteEvent, updateEvent } from "@/lib/event";
+import { CreateEventSchema, DeleteByIdSchema, UpdateEventSchema } from "@/lib/schemas";
 import axios from "axios";
 import { and, eq, gte, lte } from "drizzle-orm";
 import { cookies } from "next/headers";
@@ -55,7 +56,12 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  let body: NewEvent = await request.json();
+  const rawBody = await request.json();
+  const parsed = CreateEventSchema.safeParse(rawBody);
+  if (!parsed.success) {
+    return NextResponse.json({ error: parsed.error.flatten() }, { status: 422 });
+  }
+
   const microsoftToken = cookies().get("token")?.value;
   if (!microsoftToken)
     return NextResponse.json({ error: "Token Invalid" }, { status: 401 });
@@ -68,8 +74,9 @@ export async function POST(request: NextRequest) {
         },
       }
     );
-    body.microsoft_id = graphResponse.data.id;
-    const event = await createEvent(body);
+    // Overwrite microsoft_id with the value from the validated token — never trust the client.
+    const body: NewEvent = { ...parsed.data, microsoft_id: graphResponse.data.id };
+    await createEvent(body);
     return NextResponse.json(
       { message: "Event succesfully created", status: 200 },
       { status: 200 }
@@ -83,12 +90,13 @@ export async function POST(request: NextRequest) {
 }
 
 export async function PUT(request: NextRequest) {
-  const body: Partial<NewEvent> = await request.json();
-  if (!body?.id) {
-    return NextResponse.json({ error: "ID is required" }, { status: 400 });
+  const rawBody = await request.json();
+  const parsed = UpdateEventSchema.safeParse(rawBody);
+  if (!parsed.success) {
+    return NextResponse.json({ error: parsed.error.flatten() }, { status: 422 });
   }
   try {
-    const event = await updateEvent(body.id, body);
+    const event = await updateEvent(parsed.data.id, parsed.data);
     return event
       ? NextResponse.json(event)
       : NextResponse.json({ error: "Event not found" }, { status: 404 });
@@ -101,11 +109,12 @@ export async function PUT(request: NextRequest) {
 }
 
 export async function DELETE(request: NextRequest) {
-  const body: Partial<NewEvent> = await request.json();
-  if (!body?.id) {
-    return NextResponse.json({ error: "ID is required" }, { status: 400 });
+  const rawBody = await request.json();
+  const parsed = DeleteByIdSchema.safeParse(rawBody);
+  if (!parsed.success) {
+    return NextResponse.json({ error: parsed.error.flatten() }, { status: 422 });
   }
-  const event = await deleteEvent(body.id);
+  const event = await deleteEvent(parsed.data.id);
   return event
     ? NextResponse.json(event)
     : NextResponse.json({ error: "Event not found" }, { status: 404 });

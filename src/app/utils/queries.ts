@@ -6,7 +6,7 @@ import { apiHandler } from "./apiHandler";
 
 export async function getAllEvents() {
   const res = await apiHandler("/events", {
-    next: { tags: ["events"] },
+    next: { tags: ["events"], revalidate: 60 },
   });
   return res;
 }

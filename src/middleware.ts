@@ -1,4 +1,3 @@
-import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import { apiHandler } from "./app/utils/apiHandler";
 import { User } from "./components/Calendar/types/types";
@@ -87,7 +86,7 @@ export async function middleware(req: NextRequest) {
     }
   }
   if (req.nextUrl.pathname.startsWith("/api")) {
-    const cookiesHandler = cookies().get("token")?.value;
+    const cookiesHandler = req.cookies.get("token")?.value;
     if (!cookiesHandler)
       return new NextResponse("Unauthorized", { status: 401 });
 

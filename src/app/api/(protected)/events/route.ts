@@ -2,7 +2,6 @@ import { Event, Events, NewEvent, User } from "@/db/schema";
 import { db } from "@/lib/db";
 import { createEvent, deleteEvent, updateEvent } from "@/lib/event";
 import { CreateEventSchema, DeleteByIdSchema, UpdateEventSchema } from "@/lib/schemas";
-import axios from "axios";
 import { and, eq, gte, lte } from "drizzle-orm";
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";

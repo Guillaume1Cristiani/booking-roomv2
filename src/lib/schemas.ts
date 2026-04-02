@@ -10,6 +10,7 @@ export const CreateEventSchema = z
     dateStart: iso8601,
     dateEnd: iso8601,
     subTag_id: z.number().int().positive(),
+    society_id: z.number().int().positive().optional(), // set server-side from x-society-id header
     microsoft_id: z.string().optional(), // populated server-side; ignored if provided by client
   })
   .refine(

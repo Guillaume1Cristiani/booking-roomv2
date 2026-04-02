@@ -106,6 +106,7 @@ export const Events = pgTable(TableInfos.events, {
   dateEnd: timestamp("date_end", { mode: "string" }).notNull(),
   subTag_id: integer("sub_tag_id").notNull(),
   microsoft_id: text("microsoft_id").notNull(),
+  society_id: integer("society_id"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

@@ -1,27 +1,29 @@
 export const dynamic = "force-dynamic";
 
-import { db, pool } from "@/db";
+import { db, ssePool } from "@/db";
 import { Events, User } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
   const encoder = new TextEncoder();
-  const client = await pool.connect();
+  // Use the dedicated SSE pool so long-lived LISTEN connections do not
+  // exhaust slots in the shared API pool.
+  const client = await ssePool.connect();
   client.setMaxListeners(500);
-  let streamClosed = false; // Flag to track if the stream is already closed
+  let streamClosed = false;
 
   const cleanup = async () => {
     if (!streamClosed) {
-      streamClosed = true; // Mark stream as closed
+      streamClosed = true;
       await client.query("UNLISTEN event_changes");
-      client.release(); // Release client connection
+      client.release();
     }
   };
 
   const stream = new ReadableStream({
     async start(controller) {
-      const sendEvent = (data: any) => {
+      const sendEvent = (data: unknown) => {
         if (
           !streamClosed &&
           controller?.desiredSize !== null &&
@@ -30,7 +32,6 @@ export async function GET(request: NextRequest) {
           controller.enqueue(
             encoder.encode(`data: ${JSON.stringify(data)}\n\n`)
           );
-        } else {
         }
       };
 
@@ -38,9 +39,7 @@ export async function GET(request: NextRequest) {
         await client.query("LISTEN event_changes");
 
         client.on("notification", async (msg) => {
-          if (streamClosed) {
-            return; // Skip if stream is closed
-          }
+          if (streamClosed) return;
 
           const payload = JSON.parse(msg.payload as string);
 
@@ -48,15 +47,17 @@ export async function GET(request: NextRequest) {
           if (payload.operation === "DELETE") {
             eventData = { id: payload.id };
           } else {
-            const [event] = await db
-              //@ts-ignore
-              .select({ ...Events, user: User })
+            const rows = await db
+              .select()
               .from(Events)
               .innerJoin(User, eq(User.microsoft_id, Events.microsoft_id))
               .where(eq(Events.id, payload.id))
               .limit(1);
 
-            eventData = event || { id: payload.id };
+            const row = rows[0];
+            eventData = row
+              ? { ...row.events, user: row.users }
+              : { id: payload.id };
           }
 
           sendEvent({
@@ -65,26 +66,25 @@ export async function GET(request: NextRequest) {
           });
         });
 
-        // Keep-alive ping
+        // Keep-alive ping every 30 s
         const pingIntervalId = setInterval(() => {
           sendEvent({ type: "ping" });
         }, 30000);
 
-        // Cleanup function for when the response is closed
-        // https://github.com/vercel/next.js/discussions/48682 addEventListener("abort") doesn't work in next:14.2.3
-        // keep it until it works
+        // https://github.com/vercel/next.js/discussions/48682 — abort signal
+        // doesn't fire reliably in Next.js 14; clean up on best-effort basis.
         request.signal.addEventListener("abort", async () => {
           clearInterval(pingIntervalId);
           await cleanup();
-          // controller.close(); // Close the stream
         });
       } catch (error) {
-        console.error("Error setting up event listener:", error);
+        console.error("Error setting up SSE listener:", error);
         await cleanup();
-        controller.close(); // Close the stream
+        controller.close();
       }
     },
   });
+
   return new NextResponse(stream, {
     headers: {
       "Content-Type": "text/event-stream",

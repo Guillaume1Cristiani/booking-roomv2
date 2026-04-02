@@ -37,6 +37,8 @@ bun.lockb
 
 # Drizzle
 drizzle/
+# Track Drizzle migrations in src/drizzle/ (they are schema artifacts, not local state)
+!src/drizzle/
 
 # Docker
 .dockerignore

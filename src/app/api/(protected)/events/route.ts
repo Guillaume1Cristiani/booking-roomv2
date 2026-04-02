@@ -1,9 +1,8 @@
-import { Event, Events, NewEvent, User } from "@/db/schema";
+import { Events, NewEvent, User } from "@/db/schema";
 import { db } from "@/lib/db";
 import { createEvent, deleteEvent, updateEvent } from "@/lib/event";
 import { CreateEventSchema, DeleteByIdSchema, UpdateEventSchema } from "@/lib/schemas";
 import { and, eq, gte, lte } from "drizzle-orm";
-import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 
 function isValidDateString(dateString: string): boolean {
@@ -14,6 +13,9 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const dateStart = searchParams.get("dateStart");
   const dateEnd = searchParams.get("dateEnd");
+  // Filter events to the caller's society when the header is present.
+  const societyIdHeader = request.headers.get("x-society-id");
+  const societyId = societyIdHeader ? parseInt(societyIdHeader, 10) : null;
 
   try {
     const baseQuery = db
@@ -21,19 +23,26 @@ export async function GET(request: NextRequest) {
       .from(Events)
       .innerJoin(User, eq(User.microsoft_id, Events.microsoft_id));
 
+    const societyFilter = societyId
+      ? eq(Events.society_id, societyId)
+      : undefined;
+
     const rows = await (dateStart && dateEnd
       ? (() => {
           if (!isValidDateString(dateStart) || !isValidDateString(dateEnd)) {
             return null;
           }
+          const dateFilter = and(
+            gte(Events.dateStart, new Date(dateStart)),
+            lte(Events.dateEnd, new Date(dateEnd))
+          );
           return baseQuery.where(
-            and(
-              gte(Events.dateStart, new Date(dateStart)),
-              lte(Events.dateEnd, new Date(dateEnd))
-            )
+            societyFilter ? and(dateFilter, societyFilter) : dateFilter
           );
         })()
-      : baseQuery);
+      : societyFilter
+        ? baseQuery.where(societyFilter)
+        : baseQuery);
 
     if (rows === null) {
       return NextResponse.json(
@@ -55,26 +64,28 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const microsoftToken = cookies().get("token")?.value;
-  if (!microsoftToken)
-    return NextResponse.json({ error: "Token Invalid" }, { status: 401 });
-
   const rawBody = await request.json();
   const parsed = CreateEventSchema.safeParse(rawBody);
   if (!parsed.success) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 422 });
   }
+
+  // Identity is resolved once in middleware and forwarded via x-ms-user-id header.
+  // This avoids a redundant MS Graph call per POST request.
+  const msUserId = request.headers.get("x-ms-user-id");
+  if (!msUserId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const societyIdHeader = request.headers.get("x-society-id");
+  const societyId = societyIdHeader ? parseInt(societyIdHeader, 10) : undefined;
+
   try {
-    const graphResponse = await axios.get(
-      "https://graph.microsoft.com/v1.0/me",
-      {
-        headers: {
-          Authorization: `Bearer ${microsoftToken}`,
-        },
-      }
-    );
-    // Overwrite microsoft_id with the value from the validated token — never trust the client.
-    const body: NewEvent = { ...parsed.data, microsoft_id: graphResponse.data.id };
+    const body: NewEvent = {
+      ...parsed.data,
+      microsoft_id: msUserId,
+      society_id: societyId,
+    };
     await createEvent(body);
     return NextResponse.json(
       { message: "Event succesfully created", status: 200 },

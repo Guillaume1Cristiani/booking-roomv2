@@ -202,11 +202,12 @@ function CalendarItem({
     setisModalOpen(false);
   }
 
-  const itemClassname = `${
+  const roomColor =
     eventInfos.id === -42
-      ? "bg-stone"
-      : roomBackgroundFinder(state.rooms, Number(eventInfos.subTag_id))
-  }-300 rounded-md ${
+      ? "#d6d3d1" // stone-300
+      : roomBackgroundFinder(state.rooms, Number(eventInfos.subTag_id));
+
+  const itemClassname = `rounded-md ${
     isModalOpen && eventInfos.id !== -42
       ? " shadow-[inset_0_0_0_2px_rgba(0,0,0,1)]"
       : ""
@@ -242,17 +243,12 @@ function CalendarItem({
               position: "absolute",
               cursor: "pointer",
               display: "flex",
+              backgroundColor: roomColor + "99", // ~60% opacity for the box
             }}
           >
             <div
-              className={`${
-                eventInfos.id === -42
-                  ? "bg-stone"
-                  : roomBackgroundFinder(
-                      state.rooms,
-                      Number(eventInfos.subTag_id)
-                    )
-              }-500 h-full min-w-1 rounded-bl-md	rounded-tl-md`}
+              className="h-full min-w-1 rounded-bl-md rounded-tl-md"
+              style={{ backgroundColor: eventInfos.id === -42 ? "#78716c" : roomColor }}
             />
 
             {top !== "0%" && eventInfos.id !== -42 && isEditable && (

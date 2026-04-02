@@ -1,0 +1,48 @@
+import { EventsResponse } from "@/components/Calendar/types/types";
+
+export const mockupEvents: EventsResponse[] = [
+  {
+    id: 51,
+    name: "2 2 two days",
+    description: "2 2 two days",
+    dateStart: "2024-06-16T12:00:00.000Z",
+    dateEnd: "2024-06-17T14:00:00.000Z",
+    subTag_id: 1,
+    microsoft_id: "testid12345",
+    createdAt: "2024-05-03T15:00:02.179Z",
+    updatedAt: "2024-05-03T15:00:02.179Z",
+  },
+  {
+    id: 53,
+    name: "conflict",
+    description: "conflict",
+    dateStart: "2024-06-16T12:00:00.000Z",
+    dateEnd: "2024-06-17T14:00:00.000Z",
+    subTag_id: 1,
+    microsoft_id: "testid12345",
+    createdAt: "2024-05-03T15:00:02.179Z",
+    updatedAt: "2024-05-03T15:00:02.179Z",
+  },
+  {
+    id: 61,
+    name: "1 day conflict",
+    description: "1 day conflict",
+    dateStart: "2024-06-17T12:00:00.000Z",
+    dateEnd: "2024-06-17T14:00:00.000Z",
+    subTag_id: 1,
+    microsoft_id: "testid12345",
+    createdAt: "2024-05-03T15:00:02.179Z",
+    updatedAt: "2024-05-03T15:00:02.179Z",
+  },
+  {
+    id: 60,
+    name: "1 day conflict feqfqefeqfqfeqf fqefeq deqdeq",
+    description: "1 day conflict",
+    dateStart: "2024-06-24T12:00:00.000Z",
+    dateEnd: "2024-06-24T14:00:00.000Z",
+    subTag_id: 1,
+    microsoft_id: "testid12345",
+    createdAt: "2024-05-03T15:00:02.179Z",
+    updatedAt: "2024-05-03T15:00:02.179Z",
+  },
+];

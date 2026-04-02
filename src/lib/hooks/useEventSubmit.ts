@@ -37,14 +37,14 @@ export function useEventSubmit({
     setDisable(true);
 
     const room = roomOptions.find((item) => item.name === data.subTag_id);
-    data.subTag_id = room?.tag_id ?? data.subTag_id;
+    data.subTag_id = room?.id ?? data.subTag_id;
 
     if (eventInfos.id === -42) {
       // Create
       const toastCreate = toast.loading("Chargement...");
       try {
         const res = await createEvent(data);
-        if (res.status === 200) {
+        if (res?.id != null) {
           toast.success(
             `Salle ${data.name} pour ${formatInTimeZone(
               data.dateStart,

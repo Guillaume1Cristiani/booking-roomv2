@@ -30,7 +30,14 @@ export async function apiHandler(
     }
     return response.json();
   } else {
-    if (tagtoRevalidate !== "") revalidateTag(tagtoRevalidate);
+    if (tagtoRevalidate !== "") {
+      try {
+        revalidateTag(tagtoRevalidate);
+      } catch {
+        // revalidateTag is only available in Server Actions and Route Handlers,
+        // not in middleware or other Edge contexts — silently skip.
+      }
+    }
   }
 
   return response.json();

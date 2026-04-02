@@ -33,6 +33,7 @@ POSTGRES_DB=booking_room
 DATABASE_URL=postgresql://postgres:your-password@localhost:5433/booking_room
 
 # Microsoft OAuth
+MICROSOFT_TENANT_ID=your-azure-tenant-id
 MICROSOFT_CLIENT_ID=your-azure-client-id
 MICROSOFT_CLIENT_SECRET=your-azure-client-secret
 MICROSOFT_REDIRECT_URI=http://localhost:3000/api/auth/microsoft?action=callback

@@ -80,37 +80,34 @@ export const EventForm = ({
       data.subTag_id = findRoombySubtag;
       if (eventInfos.id === -42) {
         const toastCreate = toast.loading("Chargement...");
-        const res = createEvent(data);
-        res
-          .then((res) => {
-            if (res.status === 200) {
-              toast.success(
-                `Salle ${data.name} pour ${formatInTimeZone(
-                  data.dateStart,
-                  "Europe/Paris",
-                  "dd-MM-yyyy HH:mm",
-                  { locale: fr }
-                )} à ${formatInTimeZone(
-                  data.dateEnd,
-                  "Europe/Paris",
-                  "dd-MM-yyyy HH:mm",
-                  { locale: fr }
-                )} réservée`,
-                { id: toastCreate }
-              );
-              setisModalOpen(false);
-              // delete the placeholder the fastest way possible
-              state.updateSSEdata({ id: -42 }, "delete");
-            } else if (res.status === 500) {
-              setDisable(false);
-              toast.error(res?.message, { id: toastCreate });
-            }
-          })
-          .catch((error) => {
-            setDisable(false);
-            console.error("Error creating event:", error);
-            toast.error("Error creating event:", error, { id: toastCreate });
-          });
+        try {
+          const res = await createEvent(data);
+          if (res.status === 200) {
+            toast.success(
+              `Salle ${data.name} pour ${formatInTimeZone(
+                data.dateStart,
+                "Europe/Paris",
+                "dd-MM-yyyy HH:mm",
+                { locale: fr }
+              )} à ${formatInTimeZone(
+                data.dateEnd,
+                "Europe/Paris",
+                "dd-MM-yyyy HH:mm",
+                { locale: fr }
+              )} réservée`,
+              { id: toastCreate }
+            );
+            setisModalOpen(false);
+            state.updateSSEdata({ id: -42 }, "delete");
+          } else {
+            toast.error(res?.message ?? "Erreur lors de la création", { id: toastCreate });
+          }
+        } catch (error) {
+          console.error("Error creating event:", error);
+          toast.error("Erreur lors de la création de l'évènement", { id: toastCreate });
+        } finally {
+          setDisable(false);
+        }
       } else {
         data.id = eventInfos.id;
         try {
@@ -122,14 +119,14 @@ export const EventForm = ({
               origin: "",
             });
             toast.error(res?.error);
-            setDisable(false);
           } else {
             toast.success("Évènement a été modifié avec succès");
             setisModalOpen(false);
           }
-          // if (test30.status === 403) toast.error(test30.body);
         } catch (e) {
-          toast.error("Error Server");
+          toast.error("Erreur serveur");
+        } finally {
+          setDisable(false);
         }
       }
     }

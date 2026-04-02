@@ -293,7 +293,7 @@ export const createCalendarStore = (initState?: Partial<ItemPreview>) => {
       }
     ) => set(() => ({ eventInfos: eventInfos })),
 
-    /* Not use anywhere --> */ updateIsPreviewDisplay: () =>
+    updateIsPreviewDisplay: (isDisplay: boolean) =>
       set(() => ({ isPreviewDisplay: isDisplay })),
     updateIsNewPreviewDisplay: (isNewPreview: boolean) =>
       set(() => ({ isNewPreviewDisplay: isNewPreview })),

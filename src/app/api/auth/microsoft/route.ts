@@ -15,7 +15,12 @@ export async function GET(request: NextRequest) {
 
   if (action === "login") {
     // Redirect to Microsoft for authentication
-    const authUrl = `https://login.microsoftonline.com/901cb4ca-b862-4029-9306-e5cd0f6d9f86/oauth2/v2.0/authorize?client_id=${
+    const tenantId = process.env.MICROSOFT_TENANT_ID;
+    if (!tenantId) {
+      console.error("MICROSOFT_TENANT_ID is not set");
+      return NextResponse.json({ error: "Server misconfiguration" }, { status: 500 });
+    }
+    const authUrl = `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/authorize?client_id=${
       process.env.MICROSOFT_CLIENT_ID
     }&response_type=code&redirect_uri=${encodeURIComponent(
       process.env.MICROSOFT_REDIRECT_URI!
@@ -31,7 +36,7 @@ export async function GET(request: NextRequest) {
 
     try {
       const tokenResponse = await axios.post(
-        `https://login.microsoftonline.com/901cb4ca-b862-4029-9306-e5cd0f6d9f86/oauth2/v2.0/token`,
+        `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/token`,
         new URLSearchParams({
           client_id: process.env.MICROSOFT_CLIENT_ID!,
           scope: process.env.MICROSOFT_SCOPES!,

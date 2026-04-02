@@ -1,6 +1,7 @@
 // src/lib/events.ts
 import { Event, Events, NewEvent, Rooms, User } from "@/db/schema";
 import { and, eq, gt, lt, ne } from "drizzle-orm";
+import { ConflictError, NotFoundError } from "./errors";
 import { db } from "./db";
 // Create
 export async function createEvent(event: NewEvent): Promise<Event> {
@@ -23,7 +24,7 @@ export async function createEvent(event: NewEvent): Promise<Event> {
     const user = await db.query.User.findFirst({
       where: eq(User.microsoft_id, conflictingEvent.microsoft_id),
     });
-    throw new Error(
+    throw new ConflictError(
       `La salle ${room?.name || "inconnue"} est déjà réservée par ${
         `${user?.givenName} ${user?.surname}` || "un utilisateur"
       } du ${conflictingEvent.dateStart} au ${conflictingEvent.dateEnd}.`
@@ -104,7 +105,7 @@ export async function updateEvent(
     .limit(1);
 
   if (!existingEvent.length) {
-    throw new Error("Event not found");
+    throw new NotFoundError("Event");
   }
 
   // Merge existing event with updates
@@ -132,7 +133,7 @@ export async function updateEvent(
       where: eq(User.microsoft_id, conflictingEvent.microsoft_id),
     });
 
-    throw new Error(
+    throw new ConflictError(
       `La salle ${room?.name || "inconnue"} est déjà réservée par ${
         `${user?.givenName} ${user?.surname}` || "un utilisateur"
       } du ${conflictingEvent.dateStart} au ${conflictingEvent.dateEnd}.`

@@ -1,45 +1,42 @@
 import { db } from "@/db";
 import { Rooms } from "@/db/schema";
+import { handleRouteError, newCorrelationId, NotFoundError } from "@/lib/errors";
 import { CreateRoomSchema, DeleteByIdSchema, UpdateRoomSchema } from "@/lib/schemas";
 import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 
-// Get all rooms
 export async function GET() {
+  const correlationId = newCorrelationId();
   try {
     const allRooms = await db.select().from(Rooms);
     return NextResponse.json(allRooms);
   } catch (error) {
-    return NextResponse.json(
-      { error: "Failed to fetch rooms" },
-      { status: 500 }
-    );
+    return handleRouteError(error, correlationId, "GET /rooms");
   }
 }
 
 export async function POST(request: Request) {
+  const correlationId = newCorrelationId();
   try {
     const body = await request.json();
     const parsed = CreateRoomSchema.safeParse(body);
     if (!parsed.success) {
-      return NextResponse.json({ error: parsed.error.flatten() }, { status: 422 });
+      return NextResponse.json({ error: parsed.error.flatten(), correlationId }, { status: 422 });
     }
     const [newRoom] = await db.insert(Rooms).values(parsed.data).returning();
-    return NextResponse.json(newRoom);
+    return NextResponse.json(newRoom, { status: 201 });
   } catch (error) {
-    return NextResponse.json(
-      { error: "Failed to create room" },
-      { status: 500 }
-    );
+    return handleRouteError(error, correlationId, "POST /rooms");
   }
 }
 
 export async function PUT(request: Request) {
+  const correlationId = newCorrelationId();
   try {
     const body = await request.json();
     const parsed = UpdateRoomSchema.safeParse(body);
     if (!parsed.success) {
-      return NextResponse.json({ error: parsed.error.flatten() }, { status: 422 });
+      return NextResponse.json({ error: parsed.error.flatten(), correlationId }, { status: 422 });
     }
     const { id, ...updateData } = parsed.data;
     const [updatedRoom] = await db
@@ -47,32 +44,24 @@ export async function PUT(request: Request) {
       .set(updateData)
       .where(eq(Rooms.id, id))
       .returning();
-    if (!updatedRoom) {
-      return NextResponse.json({ error: "Room not found" }, { status: 404 });
-    }
+    if (!updatedRoom) throw new NotFoundError("Room");
     return NextResponse.json(updatedRoom);
   } catch (error) {
-    return NextResponse.json(
-      { error: "Failed to update room" },
-      { status: 500 }
-    );
+    return handleRouteError(error, correlationId, "PUT /rooms");
   }
 }
 
-// Delete a room
 export async function DELETE(request: Request) {
+  const correlationId = newCorrelationId();
   try {
     const body = await request.json();
     const parsed = DeleteByIdSchema.safeParse(body);
     if (!parsed.success) {
-      return NextResponse.json({ error: parsed.error.flatten() }, { status: 422 });
+      return NextResponse.json({ error: parsed.error.flatten(), correlationId }, { status: 422 });
     }
     await db.delete(Rooms).where(eq(Rooms.id, parsed.data.id));
     return NextResponse.json({ message: "Room deleted successfully" });
   } catch (error) {
-    return NextResponse.json(
-      { error: "Failed to delete room" },
-      { status: 500 }
-    );
+    return handleRouteError(error, correlationId, "DELETE /rooms");
   }
 }

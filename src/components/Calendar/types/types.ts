@@ -42,7 +42,7 @@ export interface EventsResponse {
   description: string;
   dateStart: string;
   dateEnd: string;
-  subTag_id: number | string;
+  subTag_id: number;
   microsoft_id: string;
   createdAt: string;
   updatedAt: string;
@@ -170,13 +170,11 @@ export type CalendarActions = {
     allEvents: ItemPreview["transformedAllEvents"]
   ) => void;
   updateSSEdata: (
-    newEvents: ItemPreview["transformedAllEvents"],
+    event: EventsResponse | { id: number },
     action: updateTypeEmitter
   ) => void;
   addTransformedAllEvents: (
-    newEvent:
-      | ItemPreview["transformedAllEvents"]
-      | ItemPreview["transformedAllEvents"][]
+    newEvent: EventsResponseWithParentEventsDate | EventsResponseWithParentEventsDate[]
   ) => void;
   updateTransformedOneEvent: (
     newEvent: EventsResponseWithParentEventsDate[] // One Event can Have Multiple child

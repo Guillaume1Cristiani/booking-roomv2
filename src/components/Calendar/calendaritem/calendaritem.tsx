@@ -20,7 +20,7 @@ import {
 import { useDomRef } from "@/lib/useDomRef";
 import * as Popover from "@radix-ui/react-popover";
 import { formatISO } from "date-fns";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import toast from "react-hot-toast";
 import { useShallow } from "zustand/react/shallow";
 import "./styles.css";
@@ -47,9 +47,9 @@ function CalendarItem({
     useShallow((state) => state.updateOnStartDrag)
   );
 
-  const { top, bottom } = transformStringtoInset(
-    eventInfos.dateStart,
-    eventInfos.dateEnd
+  const { top, bottom } = useMemo(
+    () => transformStringtoInset(eventInfos.dateStart, eventInfos.dateEnd),
+    [eventInfos.dateStart, eventInfos.dateEnd]
   );
 
   function onDragParentStart(

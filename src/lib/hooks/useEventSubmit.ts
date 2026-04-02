@@ -37,6 +37,7 @@ export function useEventSubmit({
     setDisable(true);
 
     const room = roomOptions.find((item) => item.name === data.subTag_id);
+    const roomName = room?.name ?? String(data.subTag_id);
     data.subTag_id = room?.id ?? data.subTag_id;
 
     if (eventInfos.id === -42) {
@@ -46,17 +47,22 @@ export function useEventSubmit({
         const res = await createEvent(data);
         if (res?.id != null) {
           toast.success(
-            `Salle ${data.name} pour ${formatInTimeZone(
+            `${roomName} réservée le ${formatInTimeZone(
               data.dateStart,
               "Europe/Paris",
-              "dd-MM-yyyy HH:mm",
+              "dd-MM-yyyy",
+              { locale: fr }
+            )} de ${formatInTimeZone(
+              data.dateStart,
+              "Europe/Paris",
+              "HH:mm",
               { locale: fr }
             )} à ${formatInTimeZone(
               data.dateEnd,
               "Europe/Paris",
-              "dd-MM-yyyy HH:mm",
+              "HH:mm",
               { locale: fr }
-            )} réservée`,
+            )}`,
             { id: toastCreate }
           );
           setisModalOpen(false);

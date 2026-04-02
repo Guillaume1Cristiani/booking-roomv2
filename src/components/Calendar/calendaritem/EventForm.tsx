@@ -273,7 +273,7 @@ export const EventForm = ({
               <div className=" border-b-[1px] border-zinc-400 w-full">
                 {
                   roomOptions.find(
-                    (item) => item.tag_id === eventInfos.subTag_id
+                    (item) => item.id === eventInfos.subTag_id
                   )?.name
                 }
               </div>

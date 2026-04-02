@@ -132,6 +132,19 @@ export async function GET(request: NextRequest) {
         maxAge: tokenResponse.data.expires_in,
         path: "/",
       });
+      // Store the refresh token so middleware can silently renew the session.
+      // Requires offline_access in MICROSOFT_SCOPES.
+      if (tokenResponse.data.refresh_token) {
+        response.cookies.set({
+          name: "refresh_token",
+          value: tokenResponse.data.refresh_token,
+          httpOnly: true,
+          secure: process.env.NODE_ENV !== "development",
+          sameSite: "lax",
+          maxAge: 60 * 60 * 24 * 30, // 30 days
+          path: "/",
+        });
+      }
       response.cookies.delete("oauth_state");
 
       return response;

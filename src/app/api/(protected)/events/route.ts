@@ -2,6 +2,7 @@ import { Events, NewEvent, User } from "@/db/schema";
 import { db } from "@/lib/db";
 import { createEvent, deleteEvent, updateEvent } from "@/lib/event";
 import { handleRouteError, newCorrelationId, NotFoundError } from "@/lib/errors";
+import { logAudit } from "@/lib/audit";
 import { CreateEventSchema, DeleteByIdSchema, UpdateEventSchema } from "@/lib/schemas";
 import { and, eq, gte, lte } from "drizzle-orm";
 import { NextRequest, NextResponse } from "next/server";
@@ -82,7 +83,15 @@ export async function POST(request: NextRequest) {
       microsoft_id: msUserId,
       society_id: societyId,
     };
-    await createEvent(body);
+    const created = await createEvent(body);
+    void logAudit({
+      action: "create",
+      resource: "event",
+      resourceId: created.id,
+      userId: msUserId,
+      societyId,
+      metadata: parsed.data,
+    });
     return NextResponse.json({ message: "Event successfully created" }, { status: 201 });
   } catch (error) {
     return handleRouteError(error, correlationId, "POST /events");
@@ -100,6 +109,14 @@ export async function PUT(request: NextRequest) {
     const { id, ...updateData } = parsed.data;
     const event = await updateEvent(id, updateData);
     if (!event) throw new NotFoundError("Event");
+    void logAudit({
+      action: "update",
+      resource: "event",
+      resourceId: id,
+      userId: request.headers.get("x-ms-user-id"),
+      societyId: request.headers.get("x-society-id") ? parseInt(request.headers.get("x-society-id")!, 10) : null,
+      metadata: updateData,
+    });
     return NextResponse.json(event);
   } catch (error) {
     return handleRouteError(error, correlationId, "PUT /events");
@@ -116,6 +133,13 @@ export async function DELETE(request: NextRequest) {
   try {
     const event = await deleteEvent(parsed.data.id);
     if (!event) throw new NotFoundError("Event");
+    void logAudit({
+      action: "delete",
+      resource: "event",
+      resourceId: parsed.data.id,
+      userId: request.headers.get("x-ms-user-id"),
+      societyId: request.headers.get("x-society-id") ? parseInt(request.headers.get("x-society-id")!, 10) : null,
+    });
     return NextResponse.json(event);
   } catch (error) {
     return handleRouteError(error, correlationId, "DELETE /events");

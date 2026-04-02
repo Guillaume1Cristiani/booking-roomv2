@@ -15,6 +15,13 @@
       "when": 1775141544169,
       "tag": "0001_great_miss_america",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1775143443784,
+      "tag": "0002_magical_ted_forrester",
+      "breakpoints": true
     }
   ]
 }

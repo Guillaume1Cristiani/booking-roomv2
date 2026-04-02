@@ -113,6 +113,18 @@ export const Events = pgTable(TableInfos.events, {
 export type Event = typeof Events.$inferSelect;
 export type NewEvent = typeof Events.$inferInsert;
 
+// Audit log — records every create / update / delete on events and rooms
+export const AuditLogs = pgTable("audit_logs", {
+  id: serial("id").primaryKey(),
+  action: text("action").notNull(), // "create" | "update" | "delete"
+  resource: text("resource").notNull(), // "event" | "room"
+  resourceId: integer("resource_id"),
+  userId: text("user_id"), // microsoft_id of the actor
+  societyId: integer("society_id"),
+  metadata: text("metadata"), // JSON-encoded snapshot of the mutated data
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // Define relations
 export const SocietiesRelations = relations(Societies, ({ one, many }) => ({
   licence: one(Licences, {

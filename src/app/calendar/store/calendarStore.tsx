@@ -1,4 +1,3 @@
-// @ts-nocheck
 import {
   CalendarStore,
   EventsResponse,
@@ -87,7 +86,7 @@ const defaultState: ItemPreview = {
   rooms: [],
   unwantedRooms: new Set(),
   user: {
-    id: 0,
+    id: "",
     givenName: "",
     surname: "",
     microsoft_id: "",
@@ -126,48 +125,41 @@ export const createCalendarStore = (initState?: Partial<ItemPreview>) => {
       allEvents: ItemPreview["transformedAllEvents"]
     ) => set(() => ({ transformedAllEvents: allEvents })),
     updateSSEdata: (
-      newEvents: ItemPreview["transformedAllEvents"],
+      newEvents: EventsResponse | { id: number },
       action: updateTypeEmitter
     ) =>
       set((state) => {
         if (!newEvents) throw new Error("Unexpected body");
         let newTransformedAllEvents = [...state.transformedAllEvents];
-        switch (action as updateTypeEmitter) {
+        switch (action) {
           case "delete": {
-            const idToDelete = newEvents?.id;
+            const idToDelete = newEvents.id;
             if (idToDelete != undefined) {
-              // Filter out all entries with the matching ID
               newTransformedAllEvents = newTransformedAllEvents.filter(
                 (event) => event.id !== idToDelete
               );
             }
-
             return { transformedAllEvents: newTransformedAllEvents };
           }
           case "insert": {
             const transformedDates: EventsResponseWithParentEventsDate[] =
-              transformDatestoProperTimeZone([newEvents]);
+              transformDatestoProperTimeZone([newEvents as EventsResponse]);
 
             const existingIds = new Set(
               newTransformedAllEvents.map((event) => event.id)
             );
 
-            const alreadyExists = transformedDates.some((event) =>
-              existingIds.has(event.id)
-            );
-
-            if (!alreadyExists) {
+            if (!transformedDates.some((event) => existingIds.has(event.id))) {
               newTransformedAllEvents = [
                 ...newTransformedAllEvents,
                 ...transformedDates,
               ];
             }
-
             return { transformedAllEvents: newTransformedAllEvents };
           }
           case "update": {
             const transformedDates: EventsResponseWithParentEventsDate[] =
-              transformDatestoProperTimeZone([newEvents]);
+              transformDatestoProperTimeZone([newEvents as EventsResponse]);
             const idToDelete = transformedDates[0]?.id;
 
             if (idToDelete !== undefined) {
@@ -190,9 +182,7 @@ export const createCalendarStore = (initState?: Partial<ItemPreview>) => {
         }
       }),
     addTransformedAllEvents: (
-      newEvent:
-        | ItemPreview["transformedAllEvents"]
-        | ItemPreview["transformedAllEvents"][]
+      newEvent: EventsResponseWithParentEventsDate | EventsResponseWithParentEventsDate[]
     ) =>
       set((state) => ({
         transformedAllEvents: Array.isArray(newEvent)

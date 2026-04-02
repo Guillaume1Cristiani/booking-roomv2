@@ -1,4 +1,4 @@
-// @ts-nocheck
+// @ts-nocheck removed — real types enforced
 import { useCalendarStore } from "@/app/calendar/providers/calendar-store-provider";
 import { FormValues } from "@/app/data/events";
 import { getConflictsRooms } from "@/app/utils/queries";
@@ -41,7 +41,7 @@ export const EventForm = ({
           eventInfos.subTag_id === -1
             ? ""
             : roomOptions.find((item) => item.id === eventInfos.subTag_id)
-                ?.name,
+                ?.name ?? "",
       },
     });
   const dateStart = watch("dateStart");

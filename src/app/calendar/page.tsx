@@ -10,15 +10,21 @@ import { getUserInfosWithMicrosoftToken } from "../utils/microsoftqueries";
 
 export default async function calendarPage() {
   const events: EventsResponse[] = await getAllEvents();
-  // const rooms: Room[] = await getAllRooms();
-  // const user = await getMicrosoftUserInfos();
   const transformedEvents = transformDatestoProperTimeZone(events);
+  const user = await getUserInfosWithMicrosoftToken();
+
+  if (!user) {
+    // This path is unreachable in practice (middleware redirects unauthenticated
+    // users to login before the page renders), but the type system requires it.
+    return null;
+  }
+
   return (
     <CalendarStoreProvider
       initialState={{
         transformedAllEvents: transformedEvents,
         rooms: await getAllRooms(),
-        user: await getUserInfosWithMicrosoftToken(),
+        user,
       }}
     >
       <div className="flex p-3 max-h-screen">

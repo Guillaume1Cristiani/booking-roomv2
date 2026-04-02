@@ -29,7 +29,7 @@ export type FormValues = {
   description: string;
   dateStart: string;
   dateEnd: string;
-  subTag_id: Number | string;
+  subTag_id: number | string;
   microsoft_id: string;
 };
 

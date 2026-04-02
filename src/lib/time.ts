@@ -1,8 +1,8 @@
-// @ts-nocheck
 import {
   EventsResponse,
   EventsResponseWithParentEventsDate,
   Insets,
+  Room,
 } from "@/components/Calendar/types/types";
 import { UTCDate } from "@date-fns/utc";
 import {
@@ -113,16 +113,32 @@ function isConflict(
   return isBefore(start1, end2) && isBefore(start2, end1);
 }
 
-export function sanitizeConflictsEventOfSameDay(events) {
+// Intermediate type used only inside sanitizeConflictsEventOfSameDay.
+interface EventWithLayout extends EventsResponseWithParentEventsDate {
+  conflicts: number;
+  conflictIndices: number[];
+  leftPercentage: number;
+  rightPercentage: number;
+  startTime: number;
+  endTime: number;
+  index: number;
+  columnIndex: number;
+}
+
+export function sanitizeConflictsEventOfSameDay(
+  events: EventsResponseWithParentEventsDate[]
+): EventsResponseWithParentEventsDate[] {
   // Initialize events with necessary properties
-  const updatedEvents = events.map((event) => ({
+  const updatedEvents: EventWithLayout[] = events.map((event) => ({
     ...event,
     conflicts: 0,
     conflictIndices: [],
     leftPercentage: 0,
     rightPercentage: 0,
-    startTime: new Date(event.start).getTime(),
-    endTime: new Date(event.end).getTime(),
+    startTime: new Date(event.dateStart).getTime(),
+    endTime: new Date(event.dateEnd).getTime(),
+    index: 0,
+    columnIndex: 0,
   }));
 
   // Sort updatedEvents by startTime to ensure consistent order
@@ -134,7 +150,7 @@ export function sanitizeConflictsEventOfSameDay(events) {
   });
 
   // Build the conflict graph using indices instead of IDs
-  const conflictGraph = {};
+  const conflictGraph: Record<number, Set<number>> = {};
 
   for (let i = 0; i < updatedEvents.length; i++) {
     const event1 = updatedEvents[i];
@@ -160,8 +176,8 @@ export function sanitizeConflictsEventOfSameDay(events) {
   }
 
   // Find conflict groups (connected components in the conflict graph)
-  const conflictGroups = [];
-  const visitedIndices = new Set();
+  const conflictGroups: EventWithLayout[][] = [];
+  const visitedIndices = new Set<number>();
 
   for (const event of updatedEvents) {
     if (!visitedIndices.has(event.index)) {
@@ -190,7 +206,7 @@ export function sanitizeConflictsEventOfSameDay(events) {
   // Assign columns within each conflict group using the same logic
   for (const group of conflictGroups) {
     // The group is already sorted by startTime
-    const columns = []; // Each column will be an array of events assigned to that column
+    const columns: EventWithLayout[][] = [];
 
     for (const event of group) {
       let assigned = false;
@@ -236,8 +252,8 @@ export function sanitizeConflictsEventOfSameDay(events) {
 
   // Clean up temporary properties before returning
   return updatedEvents.map(
-    ({ startTime, endTime, index, columnIndex, conflictIndices, ...rest }) =>
-      rest
+    ({ startTime: _s, endTime: _e, index: _i, columnIndex: _c, conflictIndices: _ci, ...rest }) =>
+      rest as EventsResponseWithParentEventsDate
   );
 }
 
@@ -392,7 +408,7 @@ export function transformDatestoProperTimeZone(
       new Date(event.dateStart)
     );
 
-    const transformedEvents = [];
+    const transformedEvents: EventsResponseWithParentEventsDate[] = [];
     for (let i = 0; i <= numberOfDays; i++) {
       const currentDateStart =
         i === 0
@@ -462,7 +478,7 @@ export function transformDatestoProperTimeZonePreview(
     new Date(dateStart)
   );
 
-  const transformedEvents = [];
+  const transformedEvents: Array<{ dateStart: string; dateEnd: string; timeZone: string; parentEventsDate: { dateStart: string; dateEnd: string } }> = [];
   for (let i = 0; i <= numberOfDays; i++) {
     const currentDateStart =
       i === 0
@@ -565,7 +581,7 @@ export function getCurrentTimePercentage() {
   return `${currentTop}%`;
 }
 
-export const retrieveRoomName = (rooms: Room[], subTagId: Number): string => {
+export const retrieveRoomName = (rooms: Room[], subTagId: number): string => {
   const roomFind = rooms.find((item) => item.id === subTagId);
   return roomFind ? roomFind.name : "";
 };

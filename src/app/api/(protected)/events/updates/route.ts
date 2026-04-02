@@ -2,8 +2,14 @@ export const dynamic = "force-dynamic";
 
 import { db, ssePool } from "@/db";
 import { Events, User } from "@/db/schema";
+import { EventsResponse } from "@/components/Calendar/types/types";
 import { eq } from "drizzle-orm";
 import { NextRequest, NextResponse } from "next/server";
+
+type ServerSentEvent =
+  | { type: "ping" }
+  | { type: "insert" | "update"; event: EventsResponse & { user: User } }
+  | { type: "delete"; event: { id: number } };
 
 export async function GET(request: NextRequest) {
   const encoder = new TextEncoder();
@@ -23,7 +29,7 @@ export async function GET(request: NextRequest) {
 
   const stream = new ReadableStream({
     async start(controller) {
-      const sendEvent = (data: unknown) => {
+      const sendEvent = (data: ServerSentEvent) => {
         if (
           !streamClosed &&
           controller?.desiredSize !== null &&

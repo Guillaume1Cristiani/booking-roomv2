@@ -52,7 +52,12 @@ export async function GET(request: NextRequest) {
     const receivedState = searchParams.get("state");
     const storedState = request.cookies.get("oauth_state")?.value;
     if (!receivedState || !storedState || receivedState !== storedState) {
-      return NextResponse.json({ error: "Invalid OAuth state" }, { status: 400 });
+      const invalidStateResponse = NextResponse.json(
+        { error: "Invalid OAuth state" },
+        { status: 400 }
+      );
+      invalidStateResponse.cookies.delete("oauth_state");
+      return invalidStateResponse;
     }
 
     try {

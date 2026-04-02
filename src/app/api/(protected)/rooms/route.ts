@@ -1,4 +1,3 @@
-import { Room } from "@/components/Calendar/types/types";
 import { db } from "@/db";
 import { Rooms } from "@/db/schema";
 import { CreateRoomSchema, DeleteByIdSchema, UpdateRoomSchema } from "@/lib/schemas";

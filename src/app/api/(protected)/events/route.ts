@@ -55,15 +55,15 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  const microsoftToken = cookies().get("token")?.value;
+  if (!microsoftToken)
+    return NextResponse.json({ error: "Token Invalid" }, { status: 401 });
+
   const rawBody = await request.json();
   const parsed = CreateEventSchema.safeParse(rawBody);
   if (!parsed.success) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 422 });
   }
-
-  const microsoftToken = cookies().get("token")?.value;
-  if (!microsoftToken)
-    return NextResponse.json({ error: "Token Invalid" }, { status: 401 });
   try {
     const graphResponse = await axios.get(
       "https://graph.microsoft.com/v1.0/me",
@@ -95,7 +95,8 @@ export async function PUT(request: NextRequest) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 422 });
   }
   try {
-    const event = await updateEvent(parsed.data.id, parsed.data);
+    const { id, ...updateData } = parsed.data;
+    const event = await updateEvent(id, updateData);
     return event
       ? NextResponse.json(event)
       : NextResponse.json({ error: "Event not found" }, { status: 404 });

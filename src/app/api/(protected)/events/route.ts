@@ -1,9 +1,8 @@
-// @ts-nocheck
 import { Event, Events, NewEvent, User } from "@/db/schema";
 import { db } from "@/lib/db";
 import { createEvent, deleteEvent, updateEvent } from "@/lib/event";
 import axios from "axios";
-import { and, eq, gte, lte, sql } from "drizzle-orm";
+import { and, eq, gte, lte } from "drizzle-orm";
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -17,33 +16,33 @@ export async function GET(request: NextRequest) {
   const dateEnd = searchParams.get("dateEnd");
 
   try {
-    // no clue on how to find the typescript here
-    let query = await db
-      .select({ ...Events, user: User })
+    const baseQuery = db
+      .select()
       .from(Events)
       .innerJoin(User, eq(User.microsoft_id, Events.microsoft_id));
 
-    if (dateStart && dateEnd) {
-      if (!isValidDateString(dateStart) || !isValidDateString(dateEnd)) {
-        return NextResponse.json(
-          {
-            error:
-              "Invalid date format. Use ISO 8601 (YYYY-MM-DDTHH:mm:ss:mmmZ).",
-          },
-          { status: 400 }
-        );
-      }
+    const rows = await (dateStart && dateEnd
+      ? (() => {
+          if (!isValidDateString(dateStart) || !isValidDateString(dateEnd)) {
+            return null;
+          }
+          return baseQuery.where(
+            and(
+              gte(Events.dateStart, new Date(dateStart)),
+              lte(Events.dateEnd, new Date(dateEnd))
+            )
+          );
+        })()
+      : baseQuery);
 
-      // Apply date filtering
-      query = query.where(
-        and(
-          gte(Events.dateStart, sql`${dateStart}`),
-          lte(Events.dateEnd, sql`${dateEnd}`)
-        )
+    if (rows === null) {
+      return NextResponse.json(
+        { error: "Invalid date format. Use ISO 8601 (YYYY-MM-DDTHH:mm:ss.mmmZ)." },
+        { status: 400 }
       );
     }
 
-    const events: Event[] = await query;
+    const events = rows.map((row) => ({ ...row.events, user: row.users }));
 
     return NextResponse.json(events);
   } catch (error) {
@@ -77,7 +76,7 @@ export async function POST(request: NextRequest) {
     );
   } catch (error) {
     return NextResponse.json(
-      { message: error.toString(), status: 500 },
+      { message: error instanceof Error ? error.message : "Internal Server Error", status: 500 },
       { status: 500 }
     );
   }
@@ -95,7 +94,7 @@ export async function PUT(request: NextRequest) {
       : NextResponse.json({ error: "Event not found" }, { status: 404 });
   } catch (e) {
     return NextResponse.json(
-      { error: e.toString(), status: 403 },
+      { error: e instanceof Error ? e.message : "Forbidden", status: 403 },
       { status: 403 }
     );
   }

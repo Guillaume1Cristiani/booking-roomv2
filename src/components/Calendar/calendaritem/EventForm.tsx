@@ -1,12 +1,8 @@
 // @ts-nocheck
 import { useCalendarStore } from "@/app/calendar/providers/calendar-store-provider";
 import { FormValues } from "@/app/data/events";
-import {
-  createEvent,
-  deleteEvent,
-  getConflictsRooms,
-  updateEvent,
-} from "@/app/utils/queries";
+import { getConflictsRooms } from "@/app/utils/queries";
+import { useEventSubmit } from "@/lib/hooks/useEventSubmit";
 import { EventsResponseWithParentEventsDate } from "@/components/Calendar/types/types";
 import {
   ClockIcon,
@@ -25,7 +21,6 @@ import { formatInTimeZone } from "date-fns-tz";
 import { fr } from "date-fns/locale";
 import { Dispatch, SetStateAction, useState } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
-import toast from "react-hot-toast";
 
 export const EventForm = ({
   eventInfos,
@@ -39,7 +34,7 @@ export const EventForm = ({
   const state = useCalendarStore((state) => state);
   const roomOptions = state.rooms;
 
-  const { register, handleSubmit, setValue, reset, watch } =
+  const { register, handleSubmit, setValue, watch } =
     useForm<FormValues>({
       defaultValues: {
         subTag_id:
@@ -51,9 +46,17 @@ export const EventForm = ({
     });
   const dateStart = watch("dateStart");
   const subTag_id = watch("subTag_id");
-  const [isDisable, setDisable] = useState<boolean>(false);
 
-  const [isDisplayRooms, setisDisplayRooms] = useState<boolean>(false);
+  const [isDisplayRooms, setisDisplayRooms] = useState(false);
+
+  const { onSubmit: submitEvent, handleDeleteEvent, isDisable } = useEventSubmit({
+    eventInfos,
+    roomOptions,
+    setisModalOpen,
+    updateSSEdata: state.updateSSEdata,
+    updateIsNewPreviewDisplay: state.updateIsNewPreviewDisplay,
+    updateCreatePreviewInfos: state.updateCreatePreviewInfos,
+  });
 
   const {
     data: items = [],
@@ -67,79 +70,10 @@ export const EventForm = ({
         eventInfos.dateStart,
         eventInfos.dateEnd
       ),
-    enabled: isDisplayRooms, // Only fetch when the menu is open
+    enabled: isDisplayRooms,
   });
 
-  const onSubmit: SubmitHandler<FormValues> = async (data) => {
-    // ID === -1 CREATE else PUT
-    setDisable(true);
-    if (roomOptions.some((item) => item.name === data.subTag_id)) {
-      const findRoombySubtag = roomOptions.find(
-        (item) => item.name === data.subTag_id
-      )?.tag_id;
-      data.subTag_id = findRoombySubtag;
-      if (eventInfos.id === -42) {
-        const toastCreate = toast.loading("Chargement...");
-        try {
-          const res = await createEvent(data);
-          if (res.status === 200) {
-            toast.success(
-              `Salle ${data.name} pour ${formatInTimeZone(
-                data.dateStart,
-                "Europe/Paris",
-                "dd-MM-yyyy HH:mm",
-                { locale: fr }
-              )} à ${formatInTimeZone(
-                data.dateEnd,
-                "Europe/Paris",
-                "dd-MM-yyyy HH:mm",
-                { locale: fr }
-              )} réservée`,
-              { id: toastCreate }
-            );
-            setisModalOpen(false);
-            state.updateSSEdata({ id: -42 }, "delete");
-          } else {
-            toast.error(res?.message ?? "Erreur lors de la création", { id: toastCreate });
-          }
-        } catch (error) {
-          console.error("Error creating event:", error);
-          toast.error("Erreur lors de la création de l'évènement", { id: toastCreate });
-        } finally {
-          setDisable(false);
-        }
-      } else {
-        data.id = eventInfos.id;
-        try {
-          const res = await updateEvent(data, true);
-          if (res?.status === 403 && toast?.error) {
-            state.updateIsNewPreviewDisplay(false);
-            state.updateCreatePreviewInfos({
-              dates: { dateStart: "", dateEnd: "" },
-              origin: "",
-            });
-            toast.error(res?.error);
-          } else {
-            toast.success("Évènement a été modifié avec succès");
-            setisModalOpen(false);
-          }
-        } catch (e) {
-          toast.error("Erreur serveur");
-        } finally {
-          setDisable(false);
-        }
-      }
-    }
-  };
-
-  const handleDeleteEvent = () => {
-    toast.promise(deleteEvent(eventInfos), {
-      loading: "Loading",
-      success: `Évènement supprimé avec succès`,
-      error: "Erreur dans la suppression de l'évènement",
-    });
-    setisModalOpen(false);
-  };
+  const onSubmit: SubmitHandler<FormValues> = (data) => submitEvent(data);
 
   return (
     <>

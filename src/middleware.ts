@@ -9,6 +9,13 @@ import {
 } from "./lib/middleware/validateMicrosoftToken";
 
 export async function middleware(req: NextRequest) {
+  // Strip any identity headers from incoming requests to prevent spoofing.
+  // We set these ourselves after the token is validated.
+  const requestHeaders = new Headers(req.headers);
+  requestHeaders.delete("x-ms-user-id");
+  requestHeaders.delete("x-society-id");
+  requestHeaders.delete("x-user-role");
+
   if (req.nextUrl.pathname === "/") {
     const token = req.cookies.get("token")?.value;
     if (!token || token === "") {
@@ -27,7 +34,6 @@ export async function middleware(req: NextRequest) {
     }
   }
   if (req.nextUrl.pathname.startsWith("/api")) {
-    // return NextResponse.next();
     const cookiesHandler = cookies().get("token")?.value;
     if (!cookiesHandler)
       return new NextResponse("Unauthorized", { status: 401 });
@@ -35,35 +41,35 @@ export async function middleware(req: NextRequest) {
       cookiesHandler
     );
     if (status === true) {
-      // Check Perms Here
       if (data?.id != null) {
+        // Forward the validated MS identity so route handlers don't need to
+        // re-call MS Graph to discover who the caller is.
+        requestHeaders.set("x-ms-user-id", data.id);
         try {
           const retrieveUser: User = await apiHandler("/user", {
             method: "POST",
             body: JSON.stringify({ microsoft_id: data.id }),
           });
+          requestHeaders.set("x-society-id", String(retrieveUser.society_id));
+          requestHeaders.set("x-user-role", retrieveUser.role);
 
           return protectedRoute(
             retrieveUser.role,
             req.method,
-            req.nextUrl.pathname
+            req.nextUrl.pathname,
+            requestHeaders
           );
         } catch (e) {
-          const response = NextResponse.redirect(
+          return NextResponse.redirect(
             new URL("/api/auth/microsoft?action=login", req.url)
           );
-          return response;
         }
-
-        // return retrieveUser;
-        // const { microsoft_id, role } = data as User;
       }
       return NextResponse.next();
     } else {
-      const response = NextResponse.redirect(
+      return NextResponse.redirect(
         new URL("/api/auth/microsoft?action=login", req.url)
       );
-      return response;
     }
   } else {
     // Token is for pages view
@@ -78,11 +84,10 @@ export async function middleware(req: NextRequest) {
     try {
       const isValidToken = await validateMicrosoftToken(token);
       if (!isValidToken) {
-        const response = NextResponse.redirect(
+        return NextResponse.redirect(
           new URL("/api/auth/microsoft?action=login", req.url),
           { status: 303 }
         );
-        return response;
       }
     } catch (error) {
       console.error("Error validating token:", error);

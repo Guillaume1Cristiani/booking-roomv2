@@ -470,7 +470,8 @@ function Calendar({
 
   return (
     <div className="flex flex-col w-full border-2 border-b-0 flex-1 min-h-0">
-      <div className="flex text-xl bg-white text-zinc-900 border-b-2 border-gray-300 p-2 font-medium">
+      {/* Desktop header — hidden on mobile */}
+      <div className="hidden lg:flex text-xl bg-white text-zinc-900 border-b-2 border-gray-300 p-2 font-medium">
         <button
           className="mr-3"
           onClick={() => {
@@ -511,21 +512,6 @@ function Calendar({
             locale: fr,
           }
         )}
-        {/* View mode toggle — mobile only */}
-        <div className="ml-auto flex gap-1 lg:hidden">
-          <button
-            onClick={() => preview.updateViewMode("day")}
-            className={`px-2 py-0.5 text-xs border rounded ${preview.viewMode === "day" ? "bg-zinc-800 text-white border-zinc-800" : "border-zinc-300 hover:bg-zinc-100"}`}
-          >
-            Jour
-          </button>
-          <button
-            onClick={() => preview.updateViewMode("week")}
-            className={`px-2 py-0.5 text-xs border rounded ${preview.viewMode === "week" ? "bg-zinc-800 text-white border-zinc-800" : "border-zinc-300 hover:bg-zinc-100"}`}
-          >
-            Semaine
-          </button>
-        </div>
       </div>
       <div className="flex">
         <div className="w-[48px] flex-shrink-0 bg-white divide-x border-gray-300 border-b-2" />
@@ -540,7 +526,7 @@ function Calendar({
           return (
             <div
               key={index}
-              className="basis-1/5 flex flex-col border-l-2 border-gray-300 bg-white pl-2 text-zinc-900 border-b-2"
+              className="flex-1 flex flex-col border-l-2 border-gray-300 bg-white pl-2 text-zinc-900 border-b-2"
             >
               <div className="capitalize text-sm">
                 {formatInTimeZone(daysofWeekCurrent, timezone, "iiii", {
@@ -655,31 +641,75 @@ function Calendar({
           </div> */}
         </main>
       </div>
-      {/* Bottom navigation — mobile only, day mode */}
-      {preview.viewMode === "day" && (
-        <div className="flex lg:hidden items-center justify-between bg-white border-t-2 border-gray-300 p-3">
+      {/* Bottom navigation — mobile only */}
+      <div className="flex lg:hidden items-center justify-between bg-white border-t-2 border-gray-300 px-2 py-2 gap-2">
+        {/* Prev */}
+        <button
+          onClick={() =>
+            preview.viewMode === "day"
+              ? preview.navigateDayMode(-1)
+              : (preview.updateCalendarMonthDisplayDate(addWeeks(preview.dates[0], -1)),
+                preview.updateDatesWithStart(addWeeks(preview.dates[0], -1)))
+          }
+          className="p-2 rounded-full hover:bg-zinc-100 active:bg-zinc-200"
+        >
+          <ChevronLeftIcon className="w-5 h-5" />
+        </button>
+
+        {/* Current date label */}
+        <span className="flex-1 text-center text-sm font-semibold text-zinc-900 capitalize">
+          {preview.viewMode === "day"
+            ? formatInTimeZone(
+                preview.dates[preview.activeDayIndex] ?? preview.dates[0],
+                timezone,
+                "EEEE d MMMM",
+                { locale: fr }
+              )
+            : `${formatInTimeZone(preview.dates[0], timezone, "d", { locale: fr })} – ${formatInTimeZone(
+                preview.dates[preview.dates.length - 1],
+                timezone,
+                "d MMM y",
+                { locale: fr }
+              )}`}
+        </span>
+
+        {/* View toggle */}
+        <div className="flex rounded-lg border border-zinc-300 overflow-hidden text-xs font-medium">
           <button
-            onClick={() => preview.navigateDayMode(-1)}
-            className="p-2 rounded hover:bg-zinc-100"
+            onClick={() => preview.updateViewMode("day")}
+            className={`px-3 py-1.5 transition-colors ${
+              preview.viewMode === "day"
+                ? "bg-zinc-800 text-white"
+                : "bg-white text-zinc-700 hover:bg-zinc-100"
+            }`}
           >
-            <ChevronLeftIcon className="w-5 h-5" />
+            Jour
           </button>
-          <span className="text-sm font-medium capitalize">
-            {formatInTimeZone(
-              preview.dates[preview.activeDayIndex] ?? preview.dates[0],
-              Intl.DateTimeFormat().resolvedOptions().timeZone,
-              "EEEE d MMMM",
-              { locale: fr }
-            )}
-          </span>
           <button
-            onClick={() => preview.navigateDayMode(1)}
-            className="p-2 rounded hover:bg-zinc-100"
+            onClick={() => preview.updateViewMode("week")}
+            className={`px-3 py-1.5 border-l border-zinc-300 transition-colors ${
+              preview.viewMode === "week"
+                ? "bg-zinc-800 text-white"
+                : "bg-white text-zinc-700 hover:bg-zinc-100"
+            }`}
           >
-            <ChevronRightIcon className="w-5 h-5" />
+            Sem.
           </button>
         </div>
-      )}
+
+        {/* Next */}
+        <button
+          onClick={() =>
+            preview.viewMode === "day"
+              ? preview.navigateDayMode(1)
+              : (preview.updateCalendarMonthDisplayDate(addWeeks(preview.dates[0], +1)),
+                preview.updateDatesWithStart(addWeeks(preview.dates[0], +1)))
+          }
+          className="p-2 rounded-full hover:bg-zinc-100 active:bg-zinc-200"
+        >
+          <ChevronRightIcon className="w-5 h-5" />
+        </button>
+      </div>
     </div>
   );
 }

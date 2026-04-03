@@ -80,6 +80,7 @@ export async function POST(request: NextRequest) {
   try {
     const body: NewEvent = {
       ...parsed.data,
+      description: parsed.data.description ?? "",
       microsoft_id: msUserId,
       society_id: societyId,
     };

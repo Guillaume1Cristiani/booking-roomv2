@@ -6,7 +6,7 @@ import {
   deleteEvent,
   updateEvent,
 } from "@/app/utils/queries";
-import { EventsResponseWithParentEventsDate, Room } from "@/components/Calendar/types/types";
+import { EventsResponse, EventsResponseWithParentEventsDate, Room } from "@/components/Calendar/types/types";
 import { formatInTimeZone } from "date-fns-tz";
 import { fr } from "date-fns/locale";
 import { Dispatch, SetStateAction, useState } from "react";
@@ -16,7 +16,7 @@ interface UseEventSubmitOptions {
   eventInfos: EventsResponseWithParentEventsDate;
   roomOptions: Room[];
   setisModalOpen: Dispatch<SetStateAction<boolean>>;
-  updateSSEdata: (event: { id: number }, op: string) => void;
+  updateSSEdata: (event: EventsResponse | { id: number }, op: string) => void;
   updateIsNewPreviewDisplay: (val: boolean) => void;
   updateCreatePreviewInfos: (val: { dates: { dateStart: string; dateEnd: string }; origin: string }) => void;
 }
@@ -65,8 +65,9 @@ export function useEventSubmit({
             )}`,
             { id: toastCreate }
           );
-          setisModalOpen(false);
+          updateSSEdata(res as EventsResponse, "insert");
           updateSSEdata({ id: -42 }, "delete");
+          setisModalOpen(false);
         } else {
           toast.error(
             res?.error

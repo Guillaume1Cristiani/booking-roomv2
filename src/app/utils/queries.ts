@@ -8,7 +8,7 @@ export async function getAllEvents() {
   const res = await apiHandler("/events", {
     next: { tags: ["events"], revalidate: 60 },
   });
-  return res;
+  return Array.isArray(res) ? res : [];
 }
 
 export async function createEvent(data: FormValues) {

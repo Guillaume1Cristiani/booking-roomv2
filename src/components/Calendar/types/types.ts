@@ -123,6 +123,8 @@ export interface ItemPreview {
   rooms: Room[];
   unwantedRooms: Set<Number>;
   user: User;
+  viewMode: "day" | "week";
+  activeDayIndex: number;
 }
 
 export type CalendarActions = {
@@ -181,6 +183,8 @@ export type CalendarActions = {
     newEvent: EventsResponseWithParentEventsDate[] // One Event can Have Multiple child
   ) => void;
   updateUnwantedRoom: (newUnwantedRooms: Room | Room[] | "reset") => void;
+  updateViewMode: (mode: "day" | "week") => void;
+  navigateDayMode: (direction: -1 | 1) => void;
 };
 
 export type CalendarStore = ItemPreview & CalendarActions;

@@ -266,7 +266,7 @@ function CalendarItem({
                 }}
                 className={`${
                   hover ? "block" : "hidden"
-                }    bg-gray-100 border-2 border-black rounded-full h-3 w-3 absolute top-[-0.25rem] cursor-n-resize`}
+                }    bg-gray-100 border-2 border-black rounded-full h-4 w-4 absolute top-[-0.25rem] cursor-n-resize`}
                 style={{ left: "calc(50% - 0.5rem + 2px)" }}
               ></div>
             )}
@@ -283,7 +283,7 @@ function CalendarItem({
                 }}
                 className={`${
                   hover ? "block" : "hidden"
-                }   bg-gray-100 border-2 border-black rounded-full h-3 w-3 absolute bottom-[-0.25rem] cursor-s-resize`}
+                }   bg-gray-100 border-2 border-black rounded-full h-4 w-4 absolute bottom-[-0.25rem] cursor-s-resize`}
                 style={{ left: "calc(50% - 0.5rem + 2px)" }}
               ></div>
             )}

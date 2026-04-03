@@ -1,5 +1,6 @@
 import { CalendarStoreProvider } from "@/app/calendar/providers/calendar-store-provider";
 import { getAllEvents, getAllRooms } from "@/app/utils/queries";
+import CalendarLayout from "@/app/calendar/CalendarLayout";
 import Calendar from "@/components/Calendar/main";
 import { EventsResponse } from "@/components/Calendar/types/types";
 import { CalendarPicker } from "@/components/CalendarPicker/calendarpicker";
@@ -27,15 +28,18 @@ export default async function calendarPage() {
         user,
       }}
     >
-      <div className="flex p-3 max-h-screen">
-        <section className="flex flex-col bg-zinc-100 overflow-hidden">
-          <Profile />
-          <CalendarPicker />
-          <div className=" border-b-2 border-zinc-200 mx-4 mb-2" />
-          <RoomFilter />
-        </section>
+      <CalendarLayout
+        sidebar={
+          <>
+            <Profile />
+            <CalendarPicker />
+            <div className="border-b-2 border-zinc-200 mx-4 mb-2" />
+            <RoomFilter />
+          </>
+        }
+      >
         <Calendar events={transformedEvents} />
-      </div>
+      </CalendarLayout>
     </CalendarStoreProvider>
   );
 }

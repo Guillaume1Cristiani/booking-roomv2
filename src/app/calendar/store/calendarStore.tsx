@@ -85,6 +85,8 @@ const defaultState: ItemPreview = {
   createPreviewInfos: { dates: { dateStart: "", dateEnd: "" }, origin: "" },
   rooms: [],
   unwantedRooms: new Set(),
+  viewMode: "week",
+  activeDayIndex: 0,
   user: {
     id: "",
     givenName: "",
@@ -313,8 +315,7 @@ export const createCalendarStore = (initState?: Partial<ItemPreview>) => {
         previewInfos: newPreviewInfos,
       })),
     updateUnwantedRoom: (roomInput: Room | Room[] | "reset") =>
-      set((state) => {
-        if (roomInput === "reset") {
+      set((state) => {        if (roomInput === "reset") {
           const emptyUnwantedRoom = new Set();
           return {
             unwantedRooms: emptyUnwantedRoom,
@@ -348,6 +349,32 @@ export const createCalendarStore = (initState?: Partial<ItemPreview>) => {
 
           return { unwantedRooms: newUnwantedRooms };
         }
+      }),
+    updateViewMode: (mode: "day" | "week") => set(() => ({ viewMode: mode })),
+    navigateDayMode: (direction: -1 | 1) =>
+      set((state) => {
+        const newIndex = state.activeDayIndex + direction;
+        if (newIndex < 0) {
+          const prevWeekStart = addDays(new Date(state.dates[0]), -7);
+          const newDates = Array.from({ length: 5 }, (_, i) =>
+            format(
+              addDays(startOfWeek(prevWeekStart, { weekStartsOn: 1 }), i),
+              "yyyy-MM-dd"
+            )
+          );
+          return { dates: newDates, activeDayIndex: 4, calendarMonthDisplay: prevWeekStart };
+        }
+        if (newIndex > 4) {
+          const nextWeekStart = addDays(new Date(state.dates[0]), 7);
+          const newDates = Array.from({ length: 5 }, (_, i) =>
+            format(
+              addDays(startOfWeek(nextWeekStart, { weekStartsOn: 1 }), i),
+              "yyyy-MM-dd"
+            )
+          );
+          return { dates: newDates, activeDayIndex: 0, calendarMonthDisplay: nextWeekStart };
+        }
+        return { activeDayIndex: newIndex };
       }),
   }));
 };

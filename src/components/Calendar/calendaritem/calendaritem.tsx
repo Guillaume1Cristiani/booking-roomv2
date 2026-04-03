@@ -183,8 +183,11 @@ function CalendarItem({
       const toastDrag = toast.loading("Enregistrement...");
       try {
         const test30 = await updateEvent(formValues, true);
-        if (test30?.status === 403 && toast?.error) {
-          toast.error(test30?.error, { id: toastDrag });
+        if (test30?.error) {
+          toast.error(
+            typeof test30.error === "string" ? test30.error : "Erreur lors du déplacement",
+            { id: toastDrag }
+          );
           state.updateTransformedOneEvent(previousEventInfos);
         } else {
           toast.success("Évènement déplacé avec succès", { id: toastDrag });

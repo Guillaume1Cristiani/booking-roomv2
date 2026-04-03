@@ -50,7 +50,7 @@ const defaultState: ItemPreview = {
       updatedAt: "",
     },
     user: {
-      id: 0,
+      id: "",
       givenName: "",
       surname: "",
       email: "",

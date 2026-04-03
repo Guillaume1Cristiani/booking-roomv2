@@ -26,7 +26,7 @@ export const UpdateEventSchema = z
   .object({
     id: z.number().int().positive(),
     name: z.string().min(1).max(255).optional(),
-    description: z.string().min(1).optional(),
+    description: z.string().optional(),
     dateStart: iso8601.optional(),
     dateEnd: iso8601.optional(),
     subTag_id: z.number().int().positive().optional(),

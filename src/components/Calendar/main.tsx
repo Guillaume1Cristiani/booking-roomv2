@@ -35,16 +35,9 @@ import {
 } from "date-fns";
 import { format, formatInTimeZone, toZonedTime } from "date-fns-tz";
 import { fr } from "date-fns/locale";
-import { useEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
 function HoursBarDynamic() {
-  const targetRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (targetRef.current) {
-      targetRef.current.scrollIntoView({ behavior: "instant" });
-    }
-  }, []);
   const storeApi = useCalendarStoreApi();
   // Actions are stable references — safe to read from the React snapshot.
   const state = useCalendarStore((s) => s);
@@ -279,9 +272,6 @@ function HoursBarDynamic() {
           key={index}
           data-segment-time={segment.formattedTime}
           onDragEnter={onDragEnter}
-          ref={
-            segment.formattedTime === "2019-09-18T08:00:00Z" ? targetRef : null
-          }
           className=" inset-x-0 h-[30px] border-b-2 border-grey-300 bg-white absolute select-none"
           style={
             {
@@ -436,6 +426,25 @@ function Calendar({
       ? [preview.dates[preview.activeDayIndex] ?? preview.dates[0]]
       : preview.dates;
 
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [scrollReady, setScrollReady] = useState(false);
+
+  useLayoutEffect(() => {
+    if (scrollContainerRef.current) {
+      const now = new Date();
+      const minutesSinceMidnight = now.getHours() * 60 + now.getMinutes();
+      const calendarHeight = 1440;
+      const pixelOffset = (minutesSinceMidnight / 1440) * calendarHeight;
+      const containerHeight = scrollContainerRef.current.clientHeight;
+      // Scroll so current time sits ~1/3 from the top
+      scrollContainerRef.current.scrollTop = Math.max(
+        0,
+        pixelOffset - containerHeight / 3
+      );
+      setScrollReady(true);
+    }
+  }, []);
+
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
@@ -545,7 +554,10 @@ function Calendar({
         })}
       </div>
 
-      <div className="flex-1 flex overflow-scroll min-h-0">
+      <div
+        ref={scrollContainerRef}
+        className={`flex-1 flex overflow-scroll min-h-0 transition-opacity duration-150 ${scrollReady ? "opacity-100" : "opacity-0"}`}
+      >
         <LayoutDates />
         <main
           id="calendar"

@@ -26,7 +26,7 @@ export interface OverlaysEvent {
 export type FormValues = {
   id?: number;
   name: string;
-  description: string;
+  description?: string;
   dateStart: string;
   dateEnd: string;
   subTag_id: number | string;

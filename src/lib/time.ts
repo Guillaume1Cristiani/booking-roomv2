@@ -1,6 +1,7 @@
 import {
   EventsResponse,
   EventsResponseWithParentEventsDate,
+  EventsWithParentsConflicts,
   Insets,
   Room,
 } from "@/components/Calendar/types/types";
@@ -127,7 +128,7 @@ interface EventWithLayout extends EventsResponseWithParentEventsDate {
 
 export function sanitizeConflictsEventOfSameDay(
   events: EventsResponseWithParentEventsDate[]
-): EventsResponseWithParentEventsDate[] {
+): EventsWithParentsConflicts[] {
   // Initialize events with necessary properties
   const updatedEvents: EventWithLayout[] = events.map((event) => ({
     ...event,
@@ -187,6 +188,7 @@ export function sanitizeConflictsEventOfSameDay(
 
       while (stack.length > 0) {
         const currentIndex = stack.pop();
+        if (currentIndex === undefined) continue;
         const currentEvent = updatedEvents[currentIndex];
         group.push(currentEvent);
         const neighbors = conflictGraph[currentIndex] || new Set();
@@ -253,7 +255,7 @@ export function sanitizeConflictsEventOfSameDay(
   // Clean up temporary properties before returning
   return updatedEvents.map(
     ({ startTime: _s, endTime: _e, index: _i, columnIndex: _c, conflictIndices: _ci, ...rest }) =>
-      rest as EventsResponseWithParentEventsDate
+      rest as EventsWithParentsConflicts
   );
 }
 
@@ -398,11 +400,11 @@ export function updateOneDateToProperTimeZone(
 }
 
 export function transformDatestoProperTimeZone(
-  events: EventsResponse[]
+  events: (EventsResponse | EventsResponseWithParentEventsDate)[]
 ): EventsResponseWithParentEventsDate[] {
   const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-  return events.flatMap((event: EventsResponse) => {
+  return events.flatMap((event) => {
     const numberOfDays = differenceInCalendarDays(
       new Date(event.dateEnd),
       new Date(event.dateStart)
@@ -444,20 +446,20 @@ export function transformDatestoProperTimeZone(
             ...event,
             dateStart: formatEventInTimeZonedateStart,
             dateEnd: formatEventInTimeZonedateEnd,
-            timeZone,
             createdAt: event.createdAt,
             updatedAt: event.updatedAt,
             parentEventsDate: event,
+            user: (event as EventsResponseWithParentEventsDate).user,
           });
       } else
         transformedEvents.push({
           ...event,
           dateStart: formatEventInTimeZonedateStart,
           dateEnd: formatEventInTimeZonedateEnd,
-          timeZone,
           createdAt: event.createdAt,
           updatedAt: event.updatedAt,
           parentEventsDate: event,
+          user: (event as EventsResponseWithParentEventsDate).user,
         });
     }
     return transformedEvents;

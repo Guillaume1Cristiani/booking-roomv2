@@ -57,6 +57,7 @@ const defaultState: ItemPreview = {
       email: "",
       picture: null,
       role: "VIEWER" as Role,
+      microsoft_id: "",
       society_id: 0,
       createdAt: new Date(0),
       updatedAt: new Date(0),
@@ -291,9 +292,7 @@ export const createCalendarStore = (initState?: Partial<ItemPreview>) => {
     updateisResize: (newisResize: "up" | "down" | false) =>
       set(() => ({ isResize: newisResize })),
     updateEventInfos: (
-      eventInfos: EventsResponse & {
-        parentEventsDate: ParentEventsDate;
-      }
+      eventInfos: EventsResponseWithParentEventsDate
     ) => set(() => ({ eventInfos: eventInfos })),
 
     updateIsPreviewDisplay: (isDisplay: boolean) =>
@@ -305,6 +304,7 @@ export const createCalendarStore = (initState?: Partial<ItemPreview>) => {
       newPreviewStyle: PreviewInsets[],
       newDisplay: boolean,
       newPreviewInfos: {
+        color: string;
         dateStart: Date | UTCDate | "";
         dateEnd: Date | UTCDate | "";
       }
@@ -317,7 +317,7 @@ export const createCalendarStore = (initState?: Partial<ItemPreview>) => {
       })),
     updateUnwantedRoom: (roomInput: Room | Room[] | "reset") =>
       set((state) => {        if (roomInput === "reset") {
-          const emptyUnwantedRoom = new Set();
+          const emptyUnwantedRoom = new Set<Number>();
           return {
             unwantedRooms: emptyUnwantedRoom,
           };

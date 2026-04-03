@@ -167,9 +167,11 @@ function CalendarItem({
         updatedAt: new Date().toISOString(),
       };
       const updateStateValues: EventsResponseWithParentEventsDate = {
-        ...formValues,
         id: state.eventInfos.id,
+        name: state.eventInfos.name,
+        description: state.eventInfos.description ?? "",
         subTag_id: Number(state.eventInfos.subTag_id),
+        microsoft_id: state.eventInfos.microsoft_id,
         dateStart: formatISO(state.previewInfos.dateStart),
         dateEnd: formatISO(state.previewInfos.dateEnd),
         parentEventsDate: newParent,

@@ -35,8 +35,8 @@ export async function GET(request: NextRequest) {
             return null;
           }
           const dateFilter = and(
-            gte(Events.dateStart, new Date(dateStart)),
-            lte(Events.dateEnd, new Date(dateEnd))
+            gte(Events.dateStart, new Date(dateStart).toISOString()),
+            lte(Events.dateEnd, new Date(dateEnd).toISOString())
           );
           return baseQuery.where(
             societyFilter ? and(dateFilter, societyFilter) : dateFilter

@@ -32,6 +32,16 @@ export const CalendarStoreProvider = ({
   );
 };
 
+export const useCalendarStoreApi = (): CalendarApi => {
+  const calendarStoreContext = useContext(CalendarStoreContext);
+  if (!calendarStoreContext) {
+    throw new Error(
+      `useCalendarStoreApi must be used within CalendarStoreProvider`
+    );
+  }
+  return calendarStoreContext;
+};
+
 export const useCalendarStore = <T,>(
   selector: (store: CalendarStore) => T
 ): T => {

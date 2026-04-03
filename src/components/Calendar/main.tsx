@@ -1,6 +1,6 @@
 "use client";
 
-import { useCalendarStore } from "@/app/calendar/providers/calendar-store-provider";
+import { useCalendarStore, useCalendarStoreApi } from "@/app/calendar/providers/calendar-store-provider";
 import CalendarItem from "@/components/Calendar/calendaritem/calendaritem";
 import CalendarItemPreview from "@/components/Calendar/previewcalendaritem/previewcalendaritem";
 import LayoutDates from "@/components/Calendar/static/layoutdates";
@@ -44,24 +44,26 @@ function HoursBarDynamic() {
       targetRef.current.scrollIntoView({ behavior: "instant" });
     }
   }, []);
-  //   const updateInsetY = useCalendarStore((state) => state.updateInsetY);
-  const updateInsetPreview = useCalendarStore(
-    (state) => state.updateInsetPreview
-  );
+  const storeApi = useCalendarStoreApi();
+  // Actions are stable references — safe to read from the React snapshot.
   const updatePreviewInfos = useCalendarStore(
     (state) => state.updatePreviewInfos
   );
   const updateOffsetPreview = useCalendarStore(
     (state) => state.updateOffsetPreview
   );
-  const state = useCalendarStore((state) => state);
+
   function onDragEnter(e: React.DragEvent<HTMLDivElement>) {
     e.preventDefault();
+    // Always read the latest store state to avoid stale-closure issues with
+    // React's render batching: multiple onDragEnter events can fire in one
+    // tick before React re-renders, causing every handler to see the same
+    // outdated snapshot if we use the hook value.
+    const state = storeApi.getState();
     const cellDate = e.currentTarget.getAttribute("data-segment-time");
     if (cellDate === null) {
       throw new Error("cellDate is null");
     }
-    const current = new UTCDate(cellDate);
     if (state.onDragChildStart.cellStart === "" && state.isResize === false) {
       const childDateStart = replaceDate(cellDate, state.dragging.currentDate);
       state.updateOnDragChildStart(childDateStart, {

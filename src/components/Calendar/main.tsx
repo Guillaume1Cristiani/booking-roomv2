@@ -355,7 +355,7 @@ function CalendarDay({
             <CalendarItem
               idxColumn={idxColumn}
               eventInfos={item}
-              key={index}
+              key={item.id}
               conflictInsetsX={{
                 left: `${item.leftPercentage}%`,
                 right: `${item.rightPercentage}%`,

@@ -6,6 +6,7 @@ import {
   ItemPreview,
   ParentEventsDate,
   PreviewInsets,
+  Role,
   Room,
   updateTypeEmitter,
 } from "@/components/Calendar/types/types";
@@ -55,7 +56,7 @@ const defaultState: ItemPreview = {
       surname: "",
       email: "",
       picture: null,
-      role: "",
+      role: "VIEWER" as Role,
       society_id: 0,
       createdAt: new Date(0),
       updatedAt: new Date(0),

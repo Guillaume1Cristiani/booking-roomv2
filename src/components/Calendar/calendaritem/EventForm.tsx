@@ -228,8 +228,8 @@ export const EventForm = ({
                   <PersonIcon className="w-5 h-5 text-gray-400" />
                   <div>
                     <p className="text-wrap text-sm">
-                      {`Créé par ${eventInfos.user.givenName} ${
-                        eventInfos.user.surname
+                      {`Créé par ${eventInfos.user?.givenName} ${
+                        eventInfos.user?.surname
                       } le ${formatInTimeZone(
                         eventInfos.parentEventsDate.createdAt,
                         "Europe/Paris",
@@ -283,8 +283,8 @@ export const EventForm = ({
                 <PersonIcon className="w-5 h-5 text-gray-400" />
                 <div>
                   <p className="text-wrap text-sm">
-                    {`${eventInfos.user.givenName} ${
-                      eventInfos.user.surname
+                    {`${eventInfos.user?.givenName} ${
+                      eventInfos.user?.surname
                     } le ${formatInTimeZone(
                       eventInfos.parentEventsDate.createdAt,
                       "Europe/Paris",

@@ -84,6 +84,9 @@ export async function POST(request: NextRequest) {
       society_id: societyId,
     };
     const created = await createEvent(body);
+    const user = await db.query.User.findFirst({
+      where: eq(User.microsoft_id, msUserId),
+    });
     void logAudit({
       action: "create",
       resource: "event",
@@ -92,7 +95,7 @@ export async function POST(request: NextRequest) {
       societyId,
       metadata: parsed.data,
     });
-    return NextResponse.json(created, { status: 201 });
+    return NextResponse.json({ ...created, user: user ?? null }, { status: 201 });
   } catch (error) {
     return handleRouteError(error, correlationId, "POST /events");
   }

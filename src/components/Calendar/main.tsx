@@ -405,6 +405,7 @@ function Calendar({
 
   useEffect(() => {
     preview.updateTransformedAllEvents(events);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [events]);
 
   useEffect(() => {

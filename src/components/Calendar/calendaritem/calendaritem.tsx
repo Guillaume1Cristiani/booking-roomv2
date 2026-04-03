@@ -180,15 +180,17 @@ function CalendarItem({
       const previousEventInfos = updateOneDateToProperTimeZone(eventInfos);
       const test = updateOneDateToProperTimeZone(updateStateValues);
       state.updateTransformedOneEvent(test);
+      const toastDrag = toast.loading("Enregistrement...");
       try {
         const test30 = await updateEvent(formValues, true);
         if (test30?.status === 403 && toast?.error) {
-          toast.error(test30?.error);
+          toast.error(test30?.error, { id: toastDrag });
           state.updateTransformedOneEvent(previousEventInfos);
+        } else {
+          toast.success("Évènement déplacé avec succès", { id: toastDrag });
         }
-        // if (test30.status === 403) toast.error(test30.body);
       } catch (e) {
-        toast.error("Unauthorized");
+        toast.error("Unauthorized", { id: toastDrag });
         state.updateTransformedOneEvent(previousEventInfos);
       }
     }

@@ -86,6 +86,7 @@ export function useEventSubmit({
     } else {
       // Update
       data.id = eventInfos.id;
+      const toastUpdate = toast.loading("Chargement...");
       try {
         const res = await updateEvent(data, true);
         if (res?.status === 403) {
@@ -94,13 +95,13 @@ export function useEventSubmit({
             dates: { dateStart: "", dateEnd: "" },
             origin: "",
           });
-          toast.error(res?.error);
+          toast.error(res?.error, { id: toastUpdate });
         } else {
-          toast.success("Évènement a été modifié avec succès");
+          toast.success("Évènement modifié avec succès", { id: toastUpdate });
           setisModalOpen(false);
         }
       } catch (e) {
-        toast.error("Erreur serveur");
+        toast.error("Erreur serveur", { id: toastUpdate });
       } finally {
         setDisable(false);
       }

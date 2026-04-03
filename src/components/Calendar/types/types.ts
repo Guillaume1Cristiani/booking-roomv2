@@ -129,6 +129,7 @@ export type CalendarActions = {
   updatePreviewInfos: (previewInfos: ItemPreview["previewInfos"]) => void;
   updateDatesWithStart: (newStartDate: Date) => void;
   updateCalendarMonthDisplayDate: (newCalendarMonthDisplayDate: Date) => void;
+  resetToToday: () => void;
   updateCreatePreviewInfos: (
     previewInfos: ItemPreview["createPreviewInfos"]
   ) => void;

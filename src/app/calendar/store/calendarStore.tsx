@@ -121,6 +121,16 @@ export const createCalendarStore = (initState?: Partial<ItemPreview>) => {
     updateCalendarMonthDisplayDate: (newCalendarMonthDisplayDate: Date) => {
       set(() => ({ calendarMonthDisplay: newCalendarMonthDisplayDate }));
     },
+    resetToToday: () =>
+      set(() => ({
+        dates: Array.from({ length: 5 }, (_, i) =>
+          format(
+            addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), i),
+            "yyyy-MM-dd"
+          )
+        ),
+        calendarMonthDisplay: new Date(),
+      })),
     updateTransformedAllEvents: (
       allEvents: ItemPreview["transformedAllEvents"]
     ) => set(() => ({ transformedAllEvents: allEvents })),

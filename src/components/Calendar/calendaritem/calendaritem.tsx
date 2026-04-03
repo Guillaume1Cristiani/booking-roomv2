@@ -32,7 +32,7 @@ function CalendarItem({
   isEditable,
 }: {
   eventInfos: EventsResponseWithParentEventsDate;
-  idxColumn: { total: number; index: number };
+  idxColumn: { total: number; index: number; currentDate: string };
   conflictInsetsX: { right: string; left: string };
   isEditable: boolean;
 }) {

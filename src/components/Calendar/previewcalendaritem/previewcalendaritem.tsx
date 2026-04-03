@@ -63,7 +63,7 @@ function CalendarItemPreview({
         <div
           onMouseOver={(e) => e.stopPropagation()}
           key={index}
-          className={`${inset.color}-300 flex`}
+          className="flex"
           id={`preview-${index}`}
           style={{
             ...newInset,
@@ -71,10 +71,12 @@ function CalendarItemPreview({
             cursor: "pointer",
             zIndex: 20,
             pointerEvents: "none",
+            backgroundColor: (inset.color ?? "#94a3b8") + "99",
           }}
         >
           <div
-            className={`${inset.color}-500 h-full min-w-1 rounded-bl-md	rounded-tl-md`}
+            className="h-full min-w-1 rounded-bl-md rounded-tl-md"
+            style={{ backgroundColor: inset.color ?? "#94a3b8" }}
           />
           <p className="p-t-2 px-1 overflow-hidden text-zinc-900 w-full text-wrap whitespace-nowrap">
             {roomName} {preview.eventInfos.name}

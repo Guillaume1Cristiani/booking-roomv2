@@ -2,7 +2,12 @@ import { revalidateTag } from "next/cache";
 import { cookies } from "next/headers";
 
 const API_BASE_URL = "/api";
-const CURRENT_URL = process.env.URL;
+// Server-side fetches must use localhost to avoid SSL cert verification issues.
+// process.env.URL is the public HTTPS URL, only used client-side.
+const CURRENT_URL =
+  typeof window === "undefined"
+    ? `http://localhost:${process.env.PORT ?? 3000}`
+    : process.env.URL;
 
 export async function apiHandler(
   endpoint: string,

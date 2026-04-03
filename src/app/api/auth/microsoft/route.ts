@@ -42,6 +42,14 @@ export async function GET(request: NextRequest) {
     return loginRedirect;
   } else if (action === "callback") {
     const code = searchParams.get("code");
+    const msError = searchParams.get("error");
+    const msErrorDesc = searchParams.get("error_description");
+
+    if (msError) {
+      console.error(`Microsoft OAuth error: ${msError} - ${msErrorDesc}`);
+      return NextResponse.redirect(`${baseUrl}/?error=${encodeURIComponent(msError)}`);
+    }
+
     if (!code) {
       return NextResponse.json({ error: "No code provided" }, { status: 400 });
     }

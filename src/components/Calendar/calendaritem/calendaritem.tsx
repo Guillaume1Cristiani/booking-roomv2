@@ -32,7 +32,7 @@ function CalendarItem({
   isEditable,
 }: {
   eventInfos: EventsResponseWithParentEventsDate;
-  idxColumn: { total: number; index: number };
+  idxColumn: { total: number; index: number; currentDate: string };
   conflictInsetsX: { right: string; left: string };
   isEditable: boolean;
 }) {
@@ -114,6 +114,11 @@ function CalendarItem({
         color: roomBackgroundFinder(state.rooms, Number(eventInfos.subTag_id)),
       });
       state.updateisResize(resize);
+      // For resize, seed dragging.currentDate so HoursBarDynamic's replaceDate()
+      // has the correct date when assembling the new datetime from the hovered segment.
+      if (resize !== false) {
+        state.setDragging(idxColumn);
+      }
     }, 0);
   }
 
@@ -176,7 +181,7 @@ function CalendarItem({
       const test = updateOneDateToProperTimeZone(updateStateValues);
       state.updateTransformedOneEvent(test);
       try {
-        const test30 = await updateEvent(formValues, false);
+        const test30 = await updateEvent(formValues, true);
         if (test30?.status === 403 && toast?.error) {
           toast.error(test30?.error);
           state.updateTransformedOneEvent(previousEventInfos);
@@ -202,11 +207,12 @@ function CalendarItem({
     setisModalOpen(false);
   }
 
-  const itemClassname = `${
+  const roomColor =
     eventInfos.id === -42
-      ? "bg-stone"
-      : roomBackgroundFinder(state.rooms, Number(eventInfos.subTag_id))
-  }-300 rounded-md ${
+      ? "#d6d3d1" // stone-300
+      : roomBackgroundFinder(state.rooms, Number(eventInfos.subTag_id));
+
+  const itemClassname = `rounded-md ${
     isModalOpen && eventInfos.id !== -42
       ? " shadow-[inset_0_0_0_2px_rgba(0,0,0,1)]"
       : ""
@@ -242,17 +248,12 @@ function CalendarItem({
               position: "absolute",
               cursor: "pointer",
               display: "flex",
+              backgroundColor: roomColor + "99", // ~60% opacity for the box
             }}
           >
             <div
-              className={`${
-                eventInfos.id === -42
-                  ? "bg-stone"
-                  : roomBackgroundFinder(
-                      state.rooms,
-                      Number(eventInfos.subTag_id)
-                    )
-              }-500 h-full min-w-1 rounded-bl-md	rounded-tl-md`}
+              className="h-full min-w-1 rounded-bl-md rounded-tl-md"
+              style={{ backgroundColor: eventInfos.id === -42 ? "#78716c" : roomColor }}
             />
 
             {top !== "0%" && eventInfos.id !== -42 && isEditable && (

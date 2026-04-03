@@ -13,15 +13,13 @@ export async function GET(request: NextRequest) {
   const host = request.headers.get("host");
   const baseUrl = `${protocol}://${host}`;
 
-  if (action === "login") {
-    // Redirect to Microsoft for authentication
-    const tenantId = process.env.MICROSOFT_TENANT_ID;
-    if (!tenantId) {
-      console.error("MICROSOFT_TENANT_ID is not set");
-      return NextResponse.json({ error: "Server misconfiguration" }, { status: 500 });
-    }
+  const tenantId = process.env.MICROSOFT_TENANT_ID;
+  if (!tenantId) {
+    console.error("MICROSOFT_TENANT_ID is not set");
+    return NextResponse.json({ error: "Server misconfiguration" }, { status: 500 });
+  }
 
-    // Generate a unique, unpredictable CSRF state token for this login attempt.
+  if (action === "login") {
     const csrfState = crypto.randomUUID();
     const authUrl = `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/authorize?client_id=${
       process.env.MICROSOFT_CLIENT_ID

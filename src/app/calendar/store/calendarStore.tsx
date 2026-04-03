@@ -234,7 +234,7 @@ export const createCalendarStore = (initState?: Partial<ItemPreview>) => {
       set(() => ({
         onDragChildStart: {
           cellStart: newChildDateStart,
-          brutEvents: { dateStart: "", dateEnd: "" },
+          brutEvents,
         },
       })),
     updateOffsetPreview: (offsets: {

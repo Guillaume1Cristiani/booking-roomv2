@@ -13,6 +13,8 @@ export function protectedRoute(
       : NextResponse.next({ request: headers ? { headers } : undefined });
 
   switch (role) {
+    case "ADMIN":
+      return next();
     case "VIEWER":
       return method !== "GET" ? next(401) : next();
     case "EDITOR":

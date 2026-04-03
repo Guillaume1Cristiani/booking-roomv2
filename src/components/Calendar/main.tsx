@@ -31,6 +31,7 @@ import {
   isBefore,
   isSameDay,
   startOfDay,
+  startOfWeek,
 } from "date-fns";
 import { format, formatInTimeZone, toZonedTime } from "date-fns-tz";
 import { fr } from "date-fns/locale";
@@ -463,6 +464,13 @@ function Calendar({
           }}
         >
           <ChevronRightIcon />
+        </button>
+        <button
+          onClick={() => preview.resetToToday()}
+          disabled={isSameDay(new Date(preview.dates[0]), startOfWeek(new Date(), { weekStartsOn: 1 }))}
+          className="mr-3 px-3 py-0.5 text-sm border border-zinc-300 rounded hover:bg-zinc-100 disabled:opacity-40 disabled:cursor-default disabled:hover:bg-transparent"
+        >
+          Aujourd&apos;hui
         </button>
         {formatInTimeZone(preview.dates[0], timezone, "dd MMMM- ", {
           locale: fr,

@@ -8,7 +8,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 type ServerSentEvent =
   | { type: "ping" }
-  | { type: "insert" | "update"; event: EventsResponse & { user: User } }
+  | { type: "insert" | "update"; event: EventsResponse & { user: typeof User.$inferSelect } }
   | { type: "delete"; event: { id: number } };
 
 export async function GET(request: NextRequest) {

@@ -72,10 +72,16 @@ export async function GET(request: NextRequest) {
           });
         });
 
-        // Keep-alive ping every 30 s
-        const pingIntervalId = setInterval(() => {
-          sendEvent({ type: "ping" });
-        }, 30000);
+        // Keep-alive ping every 15 s — also detects dead clients:
+        // if enqueue throws (stream closed), we clean up immediately.
+        const pingIntervalId = setInterval(async () => {
+          try {
+            sendEvent({ type: "ping" });
+          } catch {
+            clearInterval(pingIntervalId);
+            await cleanup();
+          }
+        }, 15000);
 
         // https://github.com/vercel/next.js/discussions/48682 — abort signal
         // doesn't fire reliably in Next.js 14; clean up on best-effort basis.

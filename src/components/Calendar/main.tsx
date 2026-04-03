@@ -10,6 +10,7 @@ import {
   EventsWithParentsConflicts,
 } from "@/components/Calendar/types/types";
 import { shortPollingRevalidate } from "@/lib/revalidateTag";
+import { useCalendarSSE } from "@/lib/hooks/useCalendarSSE";
 import { roomBackgroundFinder } from "@/lib/roomFinder";
 import {
   concateDateWithString,
@@ -445,14 +446,18 @@ function Calendar({
     }
   }, []);
 
+  // SSE — real-time cross-session sync (<5 s latency)
+  useCalendarSSE();
+
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Fallback polling every 30 s (handles SSE gaps / cache sync)
   useEffect(() => {
     const startPolling = () => {
       if (!intervalRef.current) {
         intervalRef.current = setInterval(() => {
           shortPollingRevalidate("events");
-        }, 15000);
+        }, 30000);
       }
     };
 

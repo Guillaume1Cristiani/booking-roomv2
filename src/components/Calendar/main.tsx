@@ -46,6 +46,7 @@ function HoursBarDynamic() {
   }, []);
   const storeApi = useCalendarStoreApi();
   // Actions are stable references — safe to read from the React snapshot.
+  const state = useCalendarStore((s) => s);
   const updatePreviewInfos = useCalendarStore(
     (state) => state.updatePreviewInfos
   );

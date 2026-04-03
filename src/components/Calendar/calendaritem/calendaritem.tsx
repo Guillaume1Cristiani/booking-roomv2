@@ -181,7 +181,7 @@ function CalendarItem({
       const test = updateOneDateToProperTimeZone(updateStateValues);
       state.updateTransformedOneEvent(test);
       try {
-        const test30 = await updateEvent(formValues, false);
+        const test30 = await updateEvent(formValues, true);
         if (test30?.status === 403 && toast?.error) {
           toast.error(test30?.error);
           state.updateTransformedOneEvent(previousEventInfos);

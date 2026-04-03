@@ -68,7 +68,14 @@ export function useEventSubmit({
           setisModalOpen(false);
           updateSSEdata({ id: -42 }, "delete");
         } else {
-          toast.error(res?.message ?? "Erreur lors de la création", { id: toastCreate });
+          toast.error(
+            res?.error
+              ? typeof res.error === "string"
+                ? res.error
+                : "Données invalides"
+              : (res?.message ?? "Erreur lors de la création"),
+            { id: toastCreate }
+          );
         }
       } catch (error) {
         console.error("Error creating event:", error);

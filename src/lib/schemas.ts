@@ -6,7 +6,7 @@ const iso8601 = z.string().datetime({ offset: true });
 export const CreateEventSchema = z
   .object({
     name: z.string().min(1).max(255),
-    description: z.string().min(1),
+    description: z.string().optional(),
     dateStart: iso8601,
     dateEnd: iso8601,
     subTag_id: z.number().int().positive(),

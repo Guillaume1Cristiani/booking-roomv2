@@ -11,7 +11,6 @@ const RoomSelectorItem = ({ room }: { room: Room }) => {
   const updateRoom = useCalendarStore((state) => state.updateUnwantedRoom);
   const unwantedRooms = useCalendarStore((state) => state.unwantedRooms);
   const [isOn, setisOn] = useState<"checked" | "unchecked">("checked");
-  const roomPrimary = room.color + "-300";
 
   useEffect(() => {
     if (unwantedRooms.has(room.id)) setisOn("unchecked");
@@ -36,19 +35,22 @@ const RoomSelectorItem = ({ room }: { room: Room }) => {
         <Switch.Root
           data-state={isOn}
           defaultChecked={true}
-          className={`w-[42px] h-[25px] rounded-full relative touch-none ${
-            isOn === "checked" ? roomPrimary : " bg-gray-400"
-          }`}
+          className="w-[42px] h-[25px] rounded-full relative touch-none transition-colors"
+          style={{ backgroundColor: isOn === "checked" ? (room.color ?? "#94a3b8") : "#9ca3af" }}
           id="airplane-mode"
         >
           <Switch.Thumb className="SwitchThumb" data-state={isOn} />
         </Switch.Root>
         <label
-          className="Label text-zinc-900 select-none"
+          className="Label text-zinc-900 select-none flex items-center gap-2"
           onClick={(e) => e.preventDefault()}
           htmlFor="airplane-mode"
           style={{ paddingRight: 15 }}
         >
+          <span
+            className="inline-block w-2.5 h-2.5 rounded-full flex-shrink-0"
+            style={{ backgroundColor: room.color ?? "#94a3b8" }}
+          />
           {room.name}
         </label>
       </div>

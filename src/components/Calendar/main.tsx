@@ -314,7 +314,7 @@ function CalendarDay({
   return (
     <div
       className={`${
-        dragging.index !== idxColumn.index ? "" : "pointer-events-none"
+        dragging.index !== idxColumn.index || state.isResize !== false ? "" : "pointer-events-none"
       }
       basis-[20%] bg-transparent border-l-2 relative overflow-hidden`}
       onDragEnter={(e: React.DragEvent<HTMLDivElement>) => {

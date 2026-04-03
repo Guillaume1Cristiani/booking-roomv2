@@ -114,6 +114,11 @@ function CalendarItem({
         color: roomBackgroundFinder(state.rooms, Number(eventInfos.subTag_id)),
       });
       state.updateisResize(resize);
+      // For resize, seed dragging.currentDate so HoursBarDynamic's replaceDate()
+      // has the correct date when assembling the new datetime from the hovered segment.
+      if (resize !== false) {
+        state.setDragging(idxColumn);
+      }
     }, 0);
   }
 
